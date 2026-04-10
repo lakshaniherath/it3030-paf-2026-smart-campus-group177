@@ -13,7 +13,6 @@ public class CreateBookingRequest {
     private String resourceId;
 
     @NotNull
-    @FutureOrPresent
     private LocalDate bookingDate;
 
     @NotNull
