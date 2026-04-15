@@ -1,5 +1,6 @@
 package com.example.demo.member2.controller;
 
+import com.example.demo.member2.dto.ConflictInfo;
 import com.example.demo.member2.dto.CreateBookingRequest;
 import com.example.demo.member2.dto.UpdateBookingStatusRequest;
 import com.example.demo.member2.model.Booking;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -25,6 +27,14 @@ public class BookingController {
     public BookingController(BookingService bookingService, UserContextService userContextService) {
         this.bookingService = bookingService;
         this.userContextService = userContextService;
+    }
+
+    @GetMapping("/availability")
+    public ResponseEntity<List<ConflictInfo>> getAvailability(
+            @RequestParam String resourceId,
+            @RequestParam String date) {
+        LocalDate bookingDate = LocalDate.parse(date);
+        return ResponseEntity.ok(bookingService.getAvailability(resourceId, bookingDate));
     }
 
     @PostMapping
