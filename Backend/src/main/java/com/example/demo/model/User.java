@@ -10,7 +10,9 @@ public class User {
     private String id;
     private String name;
     private String email;
+    private String password; // For local authentication
     private String role; // STUDENT, LECTURER, ADMIN, TECHNICIAN
+    private String provider; // oauth_google or local
     private Date createdAt = new Date();
 
     // Getters and Setters
@@ -20,6 +22,12 @@ public class User {
     public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 }
