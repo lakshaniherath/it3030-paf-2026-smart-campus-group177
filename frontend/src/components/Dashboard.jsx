@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
+import TechnicianDashboard from './TechnicianDashboard';
 import UserDashboard from './UserDashboard';
 
 const Dashboard = () => {
@@ -32,9 +33,13 @@ const Dashboard = () => {
     );
   }
 
-  // Route to admin dashboard if user is admin or technician
-  if (userRole === 'ADMIN' || userRole === 'TECHNICIAN') {
+  // Route to role-specific dashboards
+  if (userRole === 'ADMIN') {
     return <AdminDashboard />;
+  }
+
+  if (userRole === 'TECHNICIAN') {
+    return <TechnicianDashboard />;
   }
 
   // Route to user dashboard for all other roles

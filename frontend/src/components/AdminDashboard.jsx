@@ -24,7 +24,7 @@ const AdminDashboard = () => {
     const userData = JSON.parse(storedUser);
     
     // Check if user is admin
-    if (userData.role !== 'ADMIN' && userData.role !== 'TECHNICIAN') {
+    if (userData.role !== 'ADMIN') {
       navigate('/dashboard');
       return;
     }

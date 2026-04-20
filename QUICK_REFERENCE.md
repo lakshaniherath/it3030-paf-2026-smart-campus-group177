@@ -2,6 +2,7 @@
 
 ## 🎯 Quick Links
 - **Admin Credentials**: admin@example.com / Admin123
+- **Technician Credentials**: technician@example.com / Tech123
 - **Backend**: http://localhost:8080 (Spring Boot)
 - **Frontend**: http://localhost:3001 (React)
 - **Database**: MongoDB Atlas (paf/paf123)
@@ -25,6 +26,11 @@
 ```
 POST /api/auth/login
 {"email": "admin@example.com", "password": "Admin123"}
+```
+
+Technician demo login:
+```json
+{"email": "technician@example.com", "password": "Tech123"}
 ```
 
 ### Google OAuth

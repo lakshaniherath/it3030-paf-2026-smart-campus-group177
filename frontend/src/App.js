@@ -6,6 +6,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
+import TechnicianDashboard from './components/TechnicianDashboard';
 import UserDashboard from './components/UserDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Chatbot from './components/Chatbot';
@@ -21,7 +22,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} requiredRole={['STUDENT', 'LECTURER', 'ADMIN', 'TECHNICIAN', 'USER']} />} />
-        <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} requiredRole={['ADMIN', 'TECHNICIAN']} />} />
+        <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} requiredRole={['ADMIN']} />} />
+        <Route path="/technician-dashboard" element={<ProtectedRoute element={<TechnicianDashboard />} requiredRole={['TECHNICIAN']} />} />
         <Route path="/user-dashboard" element={<ProtectedRoute element={<UserDashboard />} requiredRole={['STUDENT', 'LECTURER', 'USER']} />} />
       </Routes>
     </Router>

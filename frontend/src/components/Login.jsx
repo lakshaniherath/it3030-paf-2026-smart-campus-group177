@@ -221,15 +221,6 @@ const Login = () => {
                 <span>Continue with Google</span>
               </button>
 
-              {/* Demo Credentials Info */}
-              <div className="mt-8 p-4 rounded-lg bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30">
-                <p className="text-blue-300 text-sm font-semibold mb-2">Demo Credentials:</p>
-                <div className="space-y-1 text-blue-200 text-xs">
-                  <p>📧 <span className="font-mono">admin@example.com</span></p>
-                  <p>🔑 <span className="font-mono">Admin123</span></p>
-                </div>
-              </div>
-
               {/* Sign Up Link */}
               <p className="text-center text-gray-400 text-sm mt-8">
                 Don't have an account? 
