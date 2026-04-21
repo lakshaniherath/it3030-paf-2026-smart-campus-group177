@@ -4,10 +4,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import TechnicianDashboard from './components/TechnicianDashboard';
 import UserDashboard from './components/UserDashboard';
+import OAuth2Success from './components/OAuth2Success';
 import ProtectedRoute from './components/ProtectedRoute';
 import Chatbot from './components/Chatbot';
 import NotificationPanel from './components/NotificationPanel';
@@ -21,6 +23,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/oauth2/success" element={<OAuth2Success />} />
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} requiredRole={['STUDENT', 'LECTURER', 'ADMIN', 'TECHNICIAN', 'USER']} />} />
         <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} requiredRole={['ADMIN']} />} />
         <Route path="/technician-dashboard" element={<ProtectedRoute element={<TechnicianDashboard />} requiredRole={['TECHNICIAN']} />} />

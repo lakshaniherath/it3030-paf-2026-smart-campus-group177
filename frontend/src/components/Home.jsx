@@ -21,10 +21,10 @@ const Home = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen overflow-hidden bg-gradient-to-b from-sky-50 via-white to-rose-50/40 text-slate-800 font-sans selection:bg-blue-100 selection:text-slate-900" style={{ fontFamily: "Poppins, Manrope, 'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen overflow-hidden bg-gradient-to-b from-sky-50 via-white to-emerald-50/40 text-slate-800 font-sans selection:bg-blue-100 selection:text-slate-900" style={{ fontFamily: "Poppins, Manrope, 'Segoe UI', sans-serif" }}>
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute -top-96 -left-96 h-[40rem] w-[40rem] rounded-full bg-blue-100/35 blur-3xl"></div>
-        <div className="absolute top-1/3 -right-40 h-96 w-96 rounded-full bg-rose-100/35 blur-3xl"></div>
+        <div className="absolute top-1/3 -right-40 h-96 w-96 rounded-full bg-emerald-100/35 blur-3xl"></div>
         <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-cyan-100/25 blur-3xl"></div>
       </div>
 
@@ -74,8 +74,8 @@ const Home = () => {
       <section className="relative mx-auto max-w-7xl px-4 pb-10 pt-36 sm:px-6 lg:px-8 lg:pt-40">
         <div className="grid items-center gap-14">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50/80 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-rose-900 shadow-sm">
-              <span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-900 shadow-sm">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
               Modern campus operations for bookings, tickets, and alerts
             </div>
 
@@ -119,7 +119,7 @@ const Home = () => {
 
       <section className="relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="relative mx-auto max-w-5xl">
-          <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-blue-200/30 to-rose-200/30 blur-3xl"></div>
+          <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-blue-200/30 to-emerald-200/30 blur-3xl"></div>
           <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-5 shadow-[0_25px_70px_-35px_rgba(15,23,42,0.45)] sm:p-6">
             <div className="mb-5 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
               <div>
@@ -230,10 +230,10 @@ const Home = () => {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">Why this design</p>
               <h2 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">A professional interface that feels calm, modern, and deliberate.</h2>
               <p className="mt-4 max-w-2xl text-slate-600 leading-7">
-                Built with blue as primary and warm rose accents, professional yet approachable. The palette balances modern aesthetics with user-friendly warmth, ensuring accessibility and comfort across all interactions.
+                Built with blue as primary and calm mint accents, professional yet approachable. The palette balances modern aesthetics with student-friendly comfort, ensuring accessibility across daily campus interactions.
               </p>
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-700">
-                <Badge text="Blue + rose" />
+                <Badge text="Blue + mint" />
                 <Badge text="High contrast & accessible" />
                 <Badge text="Professional & inviting" />
               </div>
@@ -250,7 +250,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="mt-5 space-y-4 text-sm text-slate-700">
-                <SummaryLine label="Color palette" value="Blue + rose" />
+                <SummaryLine label="Color palette" value="Blue + mint" />
                 <SummaryLine label="Contrast level" value="WCAG AA compliant" />
                 <SummaryLine label="Feel & tone" value="Professional yet approachable" />
                 <SummaryLine label="User experience" value="Intuitive and accessible" />
@@ -260,18 +260,18 @@ const Home = () => {
         </div>
       </section>
 
-      <footer className="relative border-t border-slate-200 bg-slate-950 px-4 py-12 text-slate-300 sm:px-6 lg:px-8">
+      <footer className="relative border-t border-blue-100 bg-gradient-to-r from-blue-700 to-cyan-600 px-4 py-12 text-blue-50 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <h3 className="text-lg font-semibold text-white">Smart Campus</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-400">A focused operations hub for campus resources, maintenance, and communication.</p>
+              <p className="mt-3 text-sm leading-6 text-blue-100">A focused operations hub for campus resources, maintenance, and communication.</p>
             </div>
             <FooterGroup title="Product" items={['Features', 'Security', 'Notifications']} />
             <FooterGroup title="Company" items={['About', 'Contact', 'Updates']} />
             <FooterGroup title="Legal" items={['Privacy', 'Terms']} />
           </div>
-          <div className="mt-10 border-t border-slate-800 pt-6 text-center text-sm text-slate-500">
+          <div className="mt-10 border-t border-blue-400/50 pt-6 text-center text-sm text-blue-100">
             © 2026 Smart Campus. All rights reserved. | IT3030 PAF Group 177
           </div>
         </div>
@@ -337,11 +337,11 @@ const SummaryLine = ({ label, value }) => (
 
 const FooterGroup = ({ title, items }) => (
   <div>
-    <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">{title}</h4>
-    <ul className="mt-4 space-y-3 text-sm text-slate-400">
+    <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">{title}</h4>
+    <ul className="mt-4 space-y-3 text-sm text-blue-100">
       {items.map((item) => (
         <li key={item}>
-          <a href="#about" className="transition hover:text-rose-300">{item}</a>
+          <a href="#about" className="transition hover:text-white">{item}</a>
         </li>
       ))}
     </ul>

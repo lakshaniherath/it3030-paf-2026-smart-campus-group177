@@ -27,7 +27,6 @@ public class NotificationController {
      * GET /api/notifications
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getUserNotifications(
             @RequestParam(defaultValue = "false") boolean unreadOnly,
             Authentication authentication,
@@ -63,7 +62,6 @@ public class NotificationController {
      * GET /api/notifications/{id}
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getNotification(@PathVariable String id) {
         try {
             Notification notification = notificationService.getNotificationById(id);
@@ -91,7 +89,6 @@ public class NotificationController {
      * PUT /api/notifications/{id}/read
      */
     @PutMapping("/{id}/read")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> markAsRead(@PathVariable String id) {
         try {
             Notification notification = notificationService.markAsRead(id);
@@ -119,7 +116,6 @@ public class NotificationController {
      * PUT /api/notifications/mark-all-read
      */
     @PutMapping("/mark-all-read")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> markAllAsRead(Authentication authentication, HttpServletRequest request) {
         try {
             String userEmail = getUserEmailFromContext(authentication, request);
@@ -148,7 +144,6 @@ public class NotificationController {
      * DELETE /api/notifications/{id}
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteNotification(@PathVariable String id) {
         try {
             boolean deleted = notificationService.deleteNotification(id);
@@ -206,7 +201,6 @@ public class NotificationController {
      * GET /api/notifications/count/unread
      */
     @GetMapping("/count/unread")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getUnreadCount(Authentication authentication, HttpServletRequest request) {
         try {
             String userEmail = getUserEmailFromContext(authentication, request);
@@ -235,7 +229,6 @@ public class NotificationController {
      * GET /api/notifications/type/{type}
      */
     @GetMapping("/type/{type}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getNotificationsByType(
             @PathVariable String type,
             Authentication authentication,

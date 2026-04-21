@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { FiArrowRight, FiBook, FiUsers, FiCalendar } from 'react-icons/fi';
+import API_BASE_URL from '../utils/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,21 +60,21 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   };
 
   return (
-    <div className="min-h-screen bg-[#07111f] text-slate-100 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-cyan-50 text-slate-800 overflow-hidden">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl animate-blob"></div>
-        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/3 h-[28rem] w-[28rem] rounded-full bg-sky-400/10 blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-blue-300/30 blur-3xl animate-blob"></div>
+        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-300/25 blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/3 h-[28rem] w-[28rem] rounded-full bg-indigo-200/30 blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
         <div className="hidden lg:block">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200 shadow-lg shadow-cyan-500/5">
+            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-300/40 bg-cyan-100 px-4 py-2 text-sm text-cyan-900 shadow-lg shadow-cyan-500/5">
               <span className="h-2 w-2 rounded-full bg-cyan-300"></span>
               Secure access to the Smart Campus Operations Hub
             </div>
@@ -84,16 +85,16 @@ const Login = () => {
                   SC
                 </div>
                 <div>
-                  <h1 className="text-4xl font-black tracking-tight text-white">Smart Campus</h1>
-                  <p className="text-slate-400">Group 177 - IT3030</p>
+                  <h1 className="text-4xl font-black tracking-tight text-slate-900">Smart Campus</h1>
+                  <p className="text-slate-600">Group 177 - IT3030</p>
                 </div>
               </div>
-              <p className="max-w-xl text-lg leading-8 text-slate-300">
+              <p className="max-w-xl text-lg leading-8 text-slate-700">
                 A refined campus management experience for bookings, incidents, notifications, and role-based access.
               </p>
             </div>
 
-            <div className="grid gap-4 rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+            <div className="grid gap-4 rounded-[1.75rem] border border-blue-100 bg-white/90 p-6 backdrop-blur-md shadow-sm">
               <FeatureLine
                 icon={<FiBook className="text-cyan-300" size={18} />}
                 title="Operations-first layout"
@@ -120,13 +121,13 @@ const Login = () => {
         </div>
 
         <div className="w-full">
-          <div className="rounded-[2rem] border border-white/10 bg-slate-950/75 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8 lg:p-10">
+          <div className="rounded-[2rem] border border-blue-100 bg-white/90 p-6 shadow-2xl shadow-blue-200/60 backdrop-blur-xl sm:p-8 lg:p-10">
             <div className="mb-8 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950 font-black shadow-lg shadow-cyan-500/20 lg:hidden">
                 SC
               </div>
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">Welcome Back</h2>
-              <p className="mt-2 text-slate-400">Sign in to continue to your Smart Campus dashboard</p>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">Welcome Back</h2>
+              <p className="mt-2 text-slate-600">Sign in to continue to your Smart Campus dashboard</p>
             </div>
 
             {error && (
@@ -138,35 +139,35 @@ const Login = () => {
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Email Address</label>
+                <label className="text-sm font-medium text-slate-700">Email Address</label>
                 <input
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Password</label>
+                <label className="text-sm font-medium text-slate-700">Password</label>
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
               </div>
 
               <div className="flex items-center justify-between pt-2 text-sm">
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/20" />
+                <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 rounded border-blue-200 bg-white text-cyan-500 focus:ring-cyan-300" />
                   <span>Remember me</span>
                 </label>
-                <a href="#forgot" className="font-medium text-cyan-300 transition hover:text-cyan-200">
+                <button type="button" onClick={() => navigate('/forgot-password')} className="font-medium text-blue-700 transition hover:text-blue-800">
                   Forgot password?
-                </a>
+                </button>
               </div>
 
               <button
@@ -197,16 +198,16 @@ const Login = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition hover:border-cyan-400/25 hover:bg-white/10"
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 px-6 py-3 font-semibold text-slate-800 transition hover:border-blue-300 hover:bg-blue-100/70"
             >
               <FcGoogle size={24} />
               <span>Continue with Google</span>
             </button>
 
-            <p className="mt-8 text-center text-sm text-slate-400">
+            <p className="mt-8 text-center text-sm text-slate-600">
               Don't have an account?{' '}
               <span
-                className="cursor-pointer font-semibold text-cyan-300 transition hover:text-cyan-200"
+                className="cursor-pointer font-semibold text-blue-700 transition hover:text-blue-800"
                 onClick={() => navigate('/register')}
               >
                 Create one now
@@ -224,18 +225,18 @@ const Login = () => {
 };
 
 const FeatureLine = ({ icon, title, description }) => (
-  <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-slate-900/60 p-4">
-    <div className="mt-0.5 rounded-2xl bg-white/5 p-2">{icon}</div>
+  <div className="flex items-start gap-4 rounded-2xl border border-blue-100 bg-white/90 p-4">
+    <div className="mt-0.5 rounded-2xl bg-blue-50 p-2">{icon}</div>
     <div>
-      <h4 className="font-semibold text-white">{title}</h4>
-      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+      <h4 className="font-semibold text-slate-900">{title}</h4>
+      <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
     </div>
   </div>
 );
 
 const MetricBlock = ({ value, label }) => (
-  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
-    <p className="text-2xl font-black text-white">{value}</p>
+  <div className="rounded-2xl border border-blue-100 bg-white p-4 text-center backdrop-blur-sm shadow-sm">
+    <p className="text-2xl font-black text-blue-800">{value}</p>
     <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">{label}</p>
   </div>
 );

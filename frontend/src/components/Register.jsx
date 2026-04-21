@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
+import API_BASE_URL from '../utils/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const Register = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,28 +73,28 @@ const Register = () => {
   };
 
   const handleGoogleRegister = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#07111f] p-4 text-slate-100">
+    <div className="min-h-screen overflow-hidden bg-gradient-to-b from-blue-50 via-white to-cyan-50 p-4 text-slate-800">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl animate-blob"></div>
-        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-blue-300/30 blur-3xl animate-blob"></div>
+        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-300/25 blur-3xl animate-blob animation-delay-2000"></div>
       </div>
 
       {/* Glassmorphism Card */}
       <div className="relative mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-md items-center justify-center">
-      <div className="w-full rounded-[2rem] border border-white/10 bg-slate-950/75 p-8 shadow-2xl shadow-black/30 backdrop-blur-xl">
+      <div className="w-full rounded-[2rem] border border-blue-100 bg-white/90 p-8 shadow-2xl shadow-blue-200/60 backdrop-blur-xl">
         
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-slate-400">Smart Campus Group 177</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
+          <p className="text-slate-600">Smart Campus Group 177</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-200">
+          <div className="mb-4 rounded-2xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800">
             {error}
           </div>
         )}
@@ -107,7 +108,7 @@ const Register = () => {
               placeholder="Full Name" 
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
           <div>
@@ -117,7 +118,7 @@ const Register = () => {
               placeholder="Email Address" 
               value={formData.email}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
           <div>
@@ -127,7 +128,7 @@ const Register = () => {
               placeholder="Password" 
               value={formData.password}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
           <div>
@@ -137,7 +138,7 @@ const Register = () => {
               placeholder="Confirm Password" 
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-5 py-3 text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
           
@@ -161,15 +162,15 @@ const Register = () => {
         <button 
           onClick={handleGoogleRegister}
           type="button"
-          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 py-3 font-medium text-white transition duration-300 hover:bg-white/10"
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 py-3 font-medium text-slate-800 transition duration-300 hover:bg-blue-100/70"
         >
           <FcGoogle size={24} />
           <span>Continue with Google</span>
         </button>
 
-        <p className="text-center text-slate-400 text-sm mt-8">
+        <p className="text-center text-slate-600 text-sm mt-8">
           Already have an account? <span 
-            className="font-semibold cursor-pointer text-cyan-300 hover:text-cyan-200" 
+            className="font-semibold cursor-pointer text-blue-700 hover:text-blue-800" 
             onClick={() => navigate('/login')}
           >
             Sign In

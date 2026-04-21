@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiBell, FiX, FiTrash2 } from 'react-icons/fi';
+import { apiFetch } from '../utils/api';
 
 const NotificationPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -7,31 +8,10 @@ const NotificationPanel = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState('all'); // all, booking, ticket, comment
 
-  const getAuthHeaders = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const headers = {
-      'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-    };
-
-    if (user.email) {
-      headers['X-User-Email'] = user.email;
-    }
-
-    return headers;
-  };
-
   useEffect(() => {
     const loadNotifications = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/notifications', {
-          headers: getAuthHeaders()
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await apiFetch('/api/notifications');
         setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
       } catch (error) {
         console.error('Error loading notifications:', error);
@@ -49,10 +29,7 @@ const NotificationPanel = () => {
 
   const handleMarkAsRead = async (id) => {
     try {
-      await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
-        method: 'PUT',
-        headers: getAuthHeaders()
-      });
+      await apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' });
       setNotifications(notifications.map(n =>
         n.id === id ? { ...n, read: true } : n
       ));
@@ -63,10 +40,7 @@ const NotificationPanel = () => {
 
   const handleDeleteNotification = async (id) => {
     try {
-      await fetch(`http://localhost:8080/api/notifications/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
+      await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' });
       setNotifications(notifications.filter(n => n.id !== id));
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -75,10 +49,7 @@ const NotificationPanel = () => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await fetch('http://localhost:8080/api/notifications/mark-all-read', {
-        method: 'PUT',
-        headers: getAuthHeaders()
-      });
+      await apiFetch('/api/notifications/mark-all-read', { method: 'PUT' });
       setNotifications(notifications.map(n => ({ ...n, read: true })));
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -134,9 +105,9 @@ const NotificationPanel = () => {
 
       {/* Notification Panel */}
       {isOpen && (
-        <div className="absolute top-16 right-0 w-96 h-screen md:h-auto md:max-h-96 rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-2xl flex flex-col animate-in slide-in-from-top-2 duration-300 overflow-hidden">
+        <div className="absolute top-16 right-0 w-96 h-screen md:h-auto md:max-h-96 rounded-[1.5rem] border border-blue-100 bg-white shadow-2xl shadow-blue-200/60 flex flex-col animate-in slide-in-from-top-2 duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-slate-900 text-white p-4 flex justify-between items-center flex-shrink-0 border-b border-white/10">
+          <div className="bg-blue-700 text-white p-4 flex justify-between items-center flex-shrink-0 border-b border-blue-200">
             <h2 className="font-bold text-lg">Notifications</h2>
             <button
               className="hover:bg-white hover:bg-opacity-20 p-1 rounded transition"
@@ -148,7 +119,7 @@ const NotificationPanel = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2 p-3 border-b border-white/10 bg-slate-950 overflow-x-auto flex-shrink-0">
+          <div className="flex gap-2 p-3 border-b border-blue-100 bg-blue-50/60 overflow-x-auto flex-shrink-0">
             {['all', 'booking', 'ticket', 'comment'].map((filterType) => {
               const counts = {
                 all: notifications.length,
@@ -166,10 +137,10 @@ const NotificationPanel = () => {
                 <button
                   key={filterType}
                   onClick={() => setFilter(filterType)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition whitespace-nowrap ${
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition whitespace-nowrap ${
                     filter === filterType
                       ? 'bg-cyan-400 text-slate-950'
-                      : 'bg-white/5 text-slate-200 border border-white/10 hover:border-cyan-400/30'
+                      : 'bg-white text-slate-700 border border-blue-100 hover:border-blue-300'
                   }`}
                 >
                   {labels[filterType]} ({counts[filterType]})
@@ -180,7 +151,7 @@ const NotificationPanel = () => {
 
           {/* Action Buttons */}
           {unreadCount > 0 && (
-            <div className="px-4 py-2 bg-white/5 border-b border-white/10 flex-shrink-0">
+            <div className="px-4 py-2 bg-blue-50/60 border-b border-blue-100 flex-shrink-0">
               <button
                 className="w-full px-3 py-2 bg-cyan-400 text-slate-950 rounded-xl transition text-sm font-semibold"
                 onClick={handleMarkAllAsRead}
@@ -196,7 +167,7 @@ const NotificationPanel = () => {
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-white/5 hover:bg-white/5 cursor-pointer transition flex gap-3 items-start ${
+                  className={`p-4 border-b border-blue-100 hover:bg-blue-50/50 cursor-pointer transition flex gap-3 items-start ${
                     !notification.read ? 'bg-cyan-500/10 border-l-4 border-l-cyan-400' : ''
                   }`}
                   onClick={() => !notification.read && handleMarkAsRead(notification.id)}
@@ -206,7 +177,7 @@ const NotificationPanel = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-slate-100 text-sm">{notification.title}</h4>
+                    <h4 className="font-semibold text-slate-800 text-sm">{notification.title}</h4>
                     <p className="text-slate-400 text-xs mt-1 line-clamp-2">{notification.message}</p>
                     <span className="text-slate-500 text-xs mt-1 block">
                       {formatTime(notification.createdAt)}
@@ -240,7 +211,7 @@ const NotificationPanel = () => {
           </div>
 
           {/* Footer */}
-          <div className="p-3 border-t border-white/10 bg-slate-950 flex-shrink-0">
+          <div className="p-3 border-t border-blue-100 bg-blue-50/60 flex-shrink-0">
             <a
               href="#settings"
               className="text-center text-sm text-cyan-300 hover:text-cyan-200 font-medium transition block"

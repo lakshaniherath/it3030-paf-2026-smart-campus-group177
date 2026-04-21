@@ -23,6 +23,8 @@ public class DemoDataLoader implements CommandLineRunner {
     public void run(String... args) {
         createUserIfMissing("Admin User", "admin@example.com", "Admin123", "ADMIN");
         createUserIfMissing("Tech User", "technician@example.com", "Tech123", "TECHNICIAN");
+        createUserIfMissing("Tech User 2", "technician2@example.com", "Tech123", "TECHNICIAN");
+        createUserIfMissing("Tech User 3", "technician3@example.com", "Tech123", "TECHNICIAN");
     }
 
     private void createUserIfMissing(String name, String email, String rawPassword, String role) {

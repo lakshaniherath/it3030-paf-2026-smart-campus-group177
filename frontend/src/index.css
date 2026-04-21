@@ -8,7 +8,8 @@ html {
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply bg-blue-50 text-slate-800 antialiased;
+  font-family: Poppins, Manrope, "Segoe UI", sans-serif;
 }
 
 @layer utilities {

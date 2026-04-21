@@ -460,11 +460,11 @@ const AdminDashboard = () => {
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-0'
-        } transition-all duration-300 overflow-hidden border-r border-white/10 bg-gradient-to-b from-slate-950 via-blue-950 to-blue-900`}
+        } transition-all duration-300 overflow-hidden border-r border-blue-200 bg-gradient-to-b from-blue-800 via-blue-700 to-cyan-600`}
       >
-        <div className="p-5 border-b border-white/10">
+        <div className="p-5 border-b border-blue-300/40">
           <h2 className="text-xl font-bold text-white">Campus Admin Hub</h2>
-          <p className="text-xs text-blue-100/80 mt-1">Group 177 Integrated Console</p>
+          <p className="text-xs text-blue-50/90 mt-1">Group 177 Integrated Console</p>
         </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
@@ -473,8 +473,8 @@ const AdminDashboard = () => {
               onClick={() => setActiveSection(item.key)}
               className={`w-full text-left px-3 py-2 rounded-xl transition flex items-center gap-3 ${
                 activeSection === item.key
-                  ? 'bg-white/15 text-white font-semibold border border-white/20'
-                  : 'bg-white/5 text-blue-50 hover:bg-white/10 border border-white/10'
+                  ? 'bg-white text-blue-800 font-semibold border border-blue-100'
+                  : 'bg-blue-700/40 text-blue-50 hover:bg-blue-700/60 border border-blue-300/30'
               }`}
             >
               {item.icon}

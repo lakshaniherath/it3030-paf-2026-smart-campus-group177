@@ -58,4 +58,16 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    public boolean updatePasswordByEmail(String email, String rawPassword) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent()) {
+            return false;
+        }
+
+        User user = userOptional.get();
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        userRepository.save(user);
+        return true;
+    }
 }

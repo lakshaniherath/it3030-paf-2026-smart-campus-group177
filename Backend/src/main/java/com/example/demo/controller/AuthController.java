@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.User;
+import com.example.demo.service.PasswordResetService;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
     
     @GetMapping("/")
     public ResponseEntity<Map<String, Object>> root() {
@@ -98,7 +102,7 @@ public class AuthController {
                 "id", user.getId(),
                 "name", user.getName(),
                 "email", user.getEmail(),
-                "role", user.getRole() != null ? user.getRole() : "user"
+                "role", user.getRole() != null ? user.getRole() : "STUDENT"
             ));
             response.put("token", "user-" + user.getId());
             return ResponseEntity.ok(response);
@@ -134,6 +138,123 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("message", e.getMessage());
+            response.put("status", "error");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/api/auth/forgot-password")
+    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String email = request.get("email");
+            if (email == null || email.isBlank()) {
+                response.put("message", "Email is required");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Optional<User> userOptional = userService.getUserByEmail(email.trim());
+            if (!userOptional.isPresent()) {
+                response.put("message", "No account found for this email");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String token = passwordResetService.createToken(email.trim());
+            response.put("message", "Reset token generated. Use it to set a new password.");
+            response.put("status", "success");
+            response.put("resetToken", token);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Failed to create reset token: " + e.getMessage());
+            response.put("status", "error");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/api/auth/reset-password")
+    public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String token = request.get("token");
+            String newPassword = request.get("newPassword");
+
+            if (token == null || token.isBlank() || newPassword == null || newPassword.isBlank()) {
+                response.put("message", "Token and new password are required");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (newPassword.length() < 6) {
+                response.put("message", "Password must be at least 6 characters");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String email = passwordResetService.consumeToken(token.trim());
+            if (email == null) {
+                response.put("message", "Invalid or expired reset token");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            boolean updated = userService.updatePasswordByEmail(email, newPassword);
+            if (!updated) {
+                response.put("message", "User not found");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            response.put("message", "Password reset successful");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Password reset failed: " + e.getMessage());
+            response.put("status", "error");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/api/auth/oauth2/me")
+    public ResponseEntity<Map<String, Object>> oauth2Me(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof OAuth2User)) {
+                response.put("message", "Unauthorized");
+                response.put("status", "error");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+            String email = oauthUser.getAttribute("email");
+
+            if (email == null || email.isBlank()) {
+                response.put("message", "OAuth profile email not available");
+                response.put("status", "error");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Optional<User> userOptional = userService.getUserByEmail(email);
+            if (!userOptional.isPresent()) {
+                response.put("message", "User not found");
+                response.put("status", "error");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            User user = userOptional.get();
+            response.put("message", "OAuth user fetched successfully");
+            response.put("status", "success");
+            response.put("user", Map.of(
+                "id", user.getId(),
+                "name", user.getName() != null ? user.getName() : oauthUser.getAttribute("name"),
+                "email", user.getEmail(),
+                "role", user.getRole() != null ? user.getRole() : "STUDENT"
+            ));
+            response.put("token", "oauth-session");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Failed to read oauth session: " + e.getMessage());
             response.put("status", "error");
             return ResponseEntity.badRequest().body(response);
         }
