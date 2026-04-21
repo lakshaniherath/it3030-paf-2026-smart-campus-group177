@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/features/resources/pages/**/*.{js,jsx,ts,tsx}", // Added path for resource pages
   ],
   theme: {
     extend: {
