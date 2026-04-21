@@ -1,277 +1,954 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiHome, FiBell, FiUser, FiLogOut, FiSettings, FiUsers, FiMenu, FiX, FiBarChart2, FiActivity, FiTrash2 } from 'react-icons/fi';
+import {
+  FiBell,
+  FiCalendar,
+  FiClock,
+  FiDatabase,
+  FiDownload,
+  FiEdit2,
+  FiFileText,
+  FiHome,
+  FiImage,
+  FiLogOut,
+  FiMenu,
+  FiPlusCircle,
+  FiRefreshCw,
+  FiSearch,
+  FiSettings,
+  FiTool,
+  FiTrash2,
+  FiUser,
+  FiUsers,
+  FiX,
+} from 'react-icons/fi';
+import { apiFetch, getStoredUser } from '../utils/api';
+
+const ROLE_OPTIONS = ['STUDENT', 'LECTURER', 'TECHNICIAN', 'ADMIN'];
+const AUDIT_LOG_STORAGE_KEY = 'adminAuditLogs';
+const DEMO_USERS = [
+  {
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'STUDENT',
+    provider: 'local',
+  },
+  {
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    role: 'LECTURER',
+    provider: 'local',
+  },
+  {
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: 'ADMIN',
+    provider: 'local',
+  },
+  {
+    name: 'Tech Support',
+    email: 'tech@example.com',
+    role: 'TECHNICIAN',
+    provider: 'local',
+  },
+];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState('home');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeNav, setActiveNav] = useState('Home');
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'STUDENT', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'LECTURER', status: 'Active' },
-    { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'ADMIN', status: 'Active' },
-  ]);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      navigate('/login');
-      return;
-    }
-    
-    const userData = JSON.parse(storedUser);
-    
-    // Check if user is admin
-    if (userData.role !== 'ADMIN') {
-      navigate('/dashboard');
-      return;
-    }
-    
-    setUser(userData);
-    setLoading(false);
-  }, [navigate]);
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const handleLogout = () => {
+  const [searchEmail, setSearchEmail] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({
+    email: '',
+    name: '',
+    role: 'STUDENT',
+  });
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'STUDENT',
+  });
+  const [notificationForm, setNotificationForm] = useState({
+    userEmail: '',
+    type: 'SYSTEM',
+    title: '',
+    message: '',
+    relatedId: '',
+  });
+
+  const [auditLogs, setAuditLogs] = useState([]);
+
+  const pushAuditLog = useCallback((action, details) => {
+    const actor = getStoredUser();
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      action,
+      details,
+      actor: actor?.email || 'admin',
+      timestamp: new Date().toISOString(),
+    };
+
+    setAuditLogs((prev) => {
+      const next = [entry, ...prev].slice(0, 50);
+      localStorage.setItem(AUDIT_LOG_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     navigate('/login');
+  }, [navigate]);
+
+  useEffect(() => {
+    const storedUser = getStoredUser();
+    if (!storedUser?.email) {
+      navigate('/login');
+      return;
+    }
+
+    if (storedUser.role !== 'ADMIN') {
+      navigate('/dashboard');
+      return;
+    }
+
+    setUser(storedUser);
+    setLoading(false);
+  }, [navigate]);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(AUDIT_LOG_STORAGE_KEY);
+    if (!raw) {
+      setAuditLogs([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      setAuditLogs(Array.isArray(parsed) ? parsed : []);
+    } catch (parseError) {
+      setAuditLogs([]);
+    }
+  }, []);
+
+  const loadAdminData = useCallback(async () => {
+    setBusy(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const [statsResult, usersResult] = await Promise.allSettled([
+        apiFetch('/api/admin/stats'),
+        apiFetch('/api/admin/users'),
+      ]);
+
+      const statsResponse = statsResult.status === 'fulfilled' ? statsResult.value : null;
+      const usersResponse = usersResult.status === 'fulfilled' ? usersResult.value : null;
+
+      const backendUsers = Array.isArray(usersResponse?.users) ? usersResponse.users : [];
+      const hasBackendUsers = backendUsers.length > 0;
+
+      setStats(statsResponse?.stats || null);
+      setUsers(hasBackendUsers ? backendUsers : DEMO_USERS);
+
+      if (hasBackendUsers) {
+        setMessage('Dashboard data refreshed.');
+      } else {
+        setMessage('');
+      }
+    } catch (fetchError) {
+      setUsers(DEMO_USERS);
+      setMessage('');
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && user) {
+      loadAdminData();
+      pushAuditLog('ADMIN_LOGIN', 'Admin dashboard session opened');
+    }
+  }, [loading, user, loadAdminData, pushAuditLog]);
+
+  const handleDeleteUser = async (email) => {
+    const shouldDelete = window.confirm(`Delete user ${email}?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setError('');
+      await apiFetch(`/api/admin/users/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+      });
+
+      setUsers((prev) => prev.filter((entry) => entry.email !== email));
+      setMessage('User deleted successfully.');
+      pushAuditLog('DELETE_USER', `Deleted user ${email}`);
+    } catch (deleteError) {
+      setError(deleteError.message || 'Unable to delete user');
+    }
   };
 
-  const handleDeleteUser = (id) => {
-    setUsers(users.filter(u => u.id !== id));
+  const handleRoleChange = async (email, role) => {
+    try {
+      setError('');
+      await apiFetch(`/api/admin/users/${encodeURIComponent(email)}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      setUsers((prev) =>
+        prev.map((entry) => (entry.email === email ? { ...entry, role } : entry))
+      );
+      setMessage(`Role updated for ${email}.`);
+      pushAuditLog('UPDATE_ROLE', `Updated role of ${email} to ${role}`);
+    } catch (roleError) {
+      setError(roleError.message || 'Unable to update role');
+    }
   };
+
+  const startEditUser = (entry) => {
+    setEditingUser(entry.email);
+    setEditForm({
+      email: entry.email,
+      name: entry.name || '',
+      role: entry.role || 'STUDENT',
+    });
+    setMessage('');
+    setError('');
+  };
+
+  const cancelEditUser = () => {
+    setEditingUser(null);
+    setEditForm({ email: '', name: '', role: 'STUDENT' });
+  };
+
+  const handleEditSubmit = async (event) => {
+    event.preventDefault();
+    if (!editForm.email) {
+      setError('Select a user to edit first.');
+      return;
+    }
+
+    try {
+      await handleRoleChange(editForm.email, editForm.role);
+      setEditingUser(null);
+      setEditForm({ email: '', name: '', role: 'STUDENT' });
+      setMessage(`User ${editForm.email} updated successfully.`);
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to update user');
+    }
+  };
+
+  const handleCreateUser = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    if (!createForm.name || !createForm.email || !createForm.password) {
+      setError('Name, email and password are required.');
+      return;
+    }
+
+    try {
+      await apiFetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: createForm.name,
+          email: createForm.email,
+          password: createForm.password,
+        }),
+      });
+
+      if (createForm.role !== 'STUDENT') {
+        await apiFetch(`/api/admin/users/${encodeURIComponent(createForm.email)}/role`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: createForm.role }),
+        });
+      }
+
+      setCreateForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'STUDENT',
+      });
+
+      await loadAdminData();
+      setMessage('New user account created.');
+      pushAuditLog('CREATE_USER', `Created user ${createForm.email}`);
+    } catch (createError) {
+      setError(createError.message || 'Unable to create user');
+    }
+  };
+
+  const handleSearchUser = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    if (!searchEmail) {
+      setError('Enter an email to search.');
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`/api/admin/users/${encodeURIComponent(searchEmail)}`);
+      setSelectedUser(response.user || null);
+      setMessage('User found.');
+      pushAuditLog('READ_USER', `Viewed profile for ${searchEmail}`);
+    } catch (searchError) {
+      setSelectedUser(null);
+      setError(searchError.message || 'Search failed');
+    }
+  };
+
+  const handleNotificationSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    if (!notificationForm.userEmail || !notificationForm.title || !notificationForm.message) {
+      setError('Recipient email, title and message are required.');
+      return;
+    }
+
+    try {
+      await apiFetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notificationForm),
+      });
+
+      setNotificationForm({
+        userEmail: '',
+        type: 'SYSTEM',
+        title: '',
+        message: '',
+        relatedId: '',
+      });
+
+      setMessage('System notification sent.');
+      pushAuditLog(
+        'SEND_NOTIFICATION',
+        `Sent ${notificationForm.type} notification to ${notificationForm.userEmail}`
+      );
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to send notification');
+    }
+  };
+
+  const downloadFile = (content, filename, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const generateCsvReport = () => {
+    const headers = ['Name', 'Email', 'Role', 'Provider', 'CreatedAt'];
+    const rows = users.map((entry) => [
+      entry.name || '',
+      entry.email || '',
+      entry.role || '',
+      entry.provider || '',
+      entry.createdAt || '',
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    downloadFile(csv, `admin-users-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv');
+    pushAuditLog('EXPORT_REPORT', 'Exported user CSV report');
+  };
+
+  const generateJsonReport = () => {
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      generatedBy: user?.email || 'admin',
+      stats,
+      users,
+      auditLogs,
+    };
+
+    downloadFile(
+      JSON.stringify(payload, null, 2),
+      `admin-summary-${new Date().toISOString().slice(0, 10)}.json`,
+      'application/json'
+    );
+    pushAuditLog('EXPORT_REPORT', 'Exported summary JSON report');
+  };
+
+  const overviewCards = useMemo(
+    () => [
+      {
+        title: 'Total Resources',
+        value: 'Integration Pending',
+        owner: 'Member 1',
+        tone: 'text-amber-300',
+      },
+      {
+        title: 'Pending Bookings',
+        value: 'Integration Pending',
+        owner: 'Member 2',
+        tone: 'text-amber-300',
+      },
+      {
+        title: 'Open Tickets',
+        value: 'Integration Pending',
+        owner: 'Member 3',
+        tone: 'text-amber-300',
+      },
+      {
+        title: 'Total Users',
+        value: stats?.totalUsers ?? users.length,
+        owner: 'Member 4',
+        tone: 'text-cyan-300',
+      },
+    ],
+    [stats, users.length]
+  );
+
+  const navItems = [
+    { key: 'home', label: 'Home', icon: <FiHome /> },
+    { key: 'resources', label: 'Resources', icon: <FiDatabase /> },
+    { key: 'bookings', label: 'Bookings', icon: <FiCalendar /> },
+    { key: 'tickets', label: 'Tickets', icon: <FiTool /> },
+    { key: 'users', label: 'Users', icon: <FiUsers /> },
+    { key: 'notifications', label: 'Notifications', icon: <FiBell /> },
+    { key: 'audit', label: 'Audit Logs', icon: <FiClock /> },
+    { key: 'reports', label: 'Reports', icon: <FiFileText /> },
+  ];
 
   if (loading) {
-    return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center"><div className="text-white text-xl">Loading...</div></div>;
-  }
-
-  if (!user) {
-    return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center"><div className="text-white text-xl">Access Denied</div></div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-rose-50/40 flex items-center justify-center text-slate-800">
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex text-white font-sans">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-white bg-opacity-5 backdrop-blur-md border-r border-white border-opacity-10 p-6 flex flex-col justify-between transition-all duration-300 overflow-hidden`}>
-        <div>
-          <div className="mb-10 px-2"><h1 className="text-2xl font-bold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">Admin Hub</h1></div>
-          <nav className="space-y-4">
-            <NavItem icon={<FiHome />} label="Dashboard" active={activeNav === 'Home'} onClick={() => setActiveNav('Home')} />
-            <NavItem icon={<FiUsers />} label="Users" active={activeNav === 'Users'} onClick={() => setActiveNav('Users')} />
-            <NavItem icon={<FiBarChart2 />} label="Analytics" active={activeNav === 'Analytics'} onClick={() => setActiveNav('Analytics')} />
-            <NavItem icon={<FiActivity />} label="Activity" active={activeNav === 'Activity'} onClick={() => setActiveNav('Activity')} />
-            <NavItem icon={<FiSettings />} label="Settings" active={activeNav === 'Settings'} onClick={() => setActiveNav('Settings')} />
-          </nav>
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-rose-50/40 text-slate-800 flex">
+      <aside
+        className={`${
+          sidebarOpen ? 'w-64' : 'w-0'
+        } transition-all duration-300 overflow-hidden border-r border-white/10 bg-gradient-to-b from-slate-950 via-blue-950 to-blue-900`}
+      >
+        <div className="p-5 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white">Campus Admin Hub</h2>
+          <p className="text-xs text-blue-100/80 mt-1">Group 177 Integrated Console</p>
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500 hover:bg-opacity-10 rounded-xl transition w-full"><FiLogOut /> <span>Logout</span></button>
+        <nav className="p-4 space-y-2">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setActiveSection(item.key)}
+              className={`w-full text-left px-3 py-2 rounded-xl transition flex items-center gap-3 ${
+                activeSection === item.key
+                  ? 'bg-white/15 text-white font-semibold border border-white/20'
+                  : 'bg-white/5 text-blue-50 hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden mb-4 p-2 bg-white bg-opacity-5 rounded-lg">{sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}</button>
-
-        {/* Hero Section with Professional Image */}
-        <div className="mb-10 rounded-3xl overflow-hidden border border-white border-opacity-10 shadow-2xl h-64 md:h-72 bg-gradient-to-r from-red-600 via-pink-600 to-orange-600 relative">
-          <div 
-            className="absolute inset-0 opacity-40"
-            style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"%3E%3Cpath d="M 20 0 L 0 0 0 20" fill="none" stroke="white" stroke-width="0.5"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100" height="100" fill="url(%23grid)" /%3E%3C/svg%3E")',
-              backgroundSize: '100px 100px'
-            }}
-          ></div>
-          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-          <div className="relative h-full flex flex-col justify-between p-8">
+      <main className="flex-1 p-6 md:p-8">
+        <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen((prev) => !prev)}
+              className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50"
+            >
+              {sidebarOpen ? <FiX /> : <FiMenu />}
+            </button>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Admin Control Hub</h1>
-              <p className="text-lg md:text-xl text-gray-100">Monitor, manage, and optimize your campus ecosystem</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="bg-white bg-opacity-20 backdrop-blur-md rounded-lg p-4 border border-white border-opacity-30">
-                <p className="text-sm text-gray-200">Total Users</p>
-                <p className="text-2xl font-bold text-white">156</p>
-              </div>
-              <div className="bg-white bg-opacity-20 backdrop-blur-md rounded-lg p-4 border border-white border-opacity-30">
-                <p className="text-sm text-gray-200">Active Sessions</p>
-                <p className="text-2xl font-bold text-white">42</p>
-              </div>
-              <div className="bg-white bg-opacity-20 backdrop-blur-md rounded-lg p-4 border border-white border-opacity-30">
-                <p className="text-sm text-gray-200">System Health</p>
-                <p className="text-2xl font-bold text-white">98%</p>
-              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Admin Dashboard</h1>
+              <p className="text-slate-600 mt-1">
+                Welcome {user?.name || 'Admin'} | Role: {user?.role || 'ADMIN'}
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Breadcrumb Path */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
-          <span className="text-slate-400">📍 Admin Hub</span>
-          <span className="text-slate-600">/</span>
-          <span className={`${activeNav === 'Home' ? 'text-red-400 font-semibold' : 'text-slate-400'}`}>
-            {activeNav === 'Home' ? 'Dashboard' : activeNav === 'Users' ? 'Users' : activeNav === 'Analytics' ? 'Analytics' : activeNav === 'Activity' ? 'Activity' : activeNav === 'Settings' ? 'Settings' : 'Dashboard'}
-          </span>
-        </nav>
-
-        {/* Header */}
-        <header className="flex justify-between items-center mb-10">
-          <div>
-            <h2 className="text-3xl font-semibold">Admin Dashboard</h2>
-            <p className="text-slate-400">Welcome back, {user?.name}!</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative p-2 bg-white bg-opacity-5 rounded-full border border-white border-opacity-10 cursor-pointer hover:bg-opacity-10 transition"><FiBell size={20} /><span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]"></span></div>
-            <img src={`https://ui-avatars.com/api/?name=${user?.name || 'Admin'}&background=DC2626&color=fff`} alt="Profile" className="w-12 h-12 rounded-full border-2 border-red-500 p-0.5" />
+          <div className="flex items-center gap-3">
+            <button className="relative p-3 rounded-xl bg-white border border-slate-200">
+              <FiBell />
+              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-blue-600"></span>
+            </button>
+            <div className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm flex items-center gap-2 text-slate-700">
+              <FiUser />
+              {user?.email || 'admin@local'}
+            </div>
+            <button
+              onClick={loadAdminData}
+              className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition flex items-center gap-2"
+            >
+              <FiRefreshCw />
+              Refresh
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition flex items-center gap-2"
+            >
+              <FiLogOut />
+              Logout
+            </button>
           </div>
         </header>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          <StatCard title="Total Users" value="156" color="from-blue-500 to-cyan-500" />
-          <StatCard title="Active Sessions" value="42" color="from-green-500 to-emerald-500" />
-          <StatCard title="System Health" value="98%" color="from-purple-500 to-pink-500" />
-          <StatCard title="New Registrations" value="12" color="from-orange-500 to-yellow-500" />
-        </div>
-
-        {/* Content Based on Active Nav */}
-        {activeNav === 'Home' && (
-          <div className="space-y-6">
-            {/* Recent Activity */}
-            <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-              <h3 className="text-xl font-medium mb-6">Recent Activity</h3>
-              <div className="space-y-4">
-                <ActivityRow icon="👤" text="New user registration" user="John Doe" time="5 mins ago" />
-                <ActivityRow icon="✅" text="User verified email" user="Jane Smith" time="1 hour ago" />
-                <ActivityRow icon="⚙️" text="System maintenance completed" user="System" time="3 hours ago" />
-              </div>
-            </div>
+        {error && (
+          <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900 text-sm">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900 text-sm">
+            {message}
           </div>
         )}
 
-        {activeNav === 'Users' && (
-          <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-            <h3 className="text-xl font-medium mb-6">User Management</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white border-opacity-10">
-                    <th className="text-left py-3 px-4 text-slate-300">Name</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Email</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Role</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Status</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className="border-b border-white border-opacity-5 hover:bg-white hover:bg-opacity-5 transition">
-                      <td className="py-3 px-4">{u.name}</td>
-                      <td className="py-3 px-4 text-slate-400">{u.email}</td>
-                      <td className="py-3 px-4"><span className={`px-3 py-1 rounded-full text-sm ${u.role === 'ADMIN' ? 'bg-red-500' : u.role === 'LECTURER' ? 'bg-blue-500' : 'bg-green-500'} bg-opacity-20`}>{u.role}</span></td>
-                      <td className="py-3 px-4"><span className="px-3 py-1 rounded-full text-sm bg-green-500 bg-opacity-20">{u.status}</span></td>
-                      <td className="py-3 px-4 flex gap-2">
-                        <button className="p-2 bg-blue-500 bg-opacity-20 hover:bg-opacity-30 rounded-lg transition"><FiUser size={16} /></button>
-                        <button onClick={() => handleDeleteUser(u.id)} className="p-2 bg-red-500 bg-opacity-20 hover:bg-opacity-30 rounded-lg transition"><FiTrash2 size={16} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {activeSection === 'home' && (
+          <section className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {overviewCards.map((card) => (
+                <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p className="text-slate-500 text-sm">{card.title}</p>
+                  <p className={`text-2xl font-bold mt-2 ${card.tone}`}>{card.value}</p>
+                  <p className="text-xs text-slate-500 mt-2">Owner: {card.owner}</p>
+                </div>
+              ))}
             </div>
-          </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h2 className="text-xl font-semibold">Team Integration Map</h2>
+              <p className="text-sm text-slate-600 mt-2">
+                Member 4 section is fully functional. Member 1, 2, and 3 sections are integration-ready panels.
+              </p>
+            </div>
+          </section>
         )}
 
-        {activeNav === 'Analytics' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-              <h3 className="text-xl font-medium mb-6">User Growth</h3>
-              <div className="h-64 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
-                <p className="text-white text-center">📊 Chart visualization would go here</p>
-              </div>
-            </div>
-            <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-              <h3 className="text-xl font-medium mb-6">System Performance</h3>
-              <div className="h-64 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
-                <p className="text-white text-center">📈 Performance metrics</p>
-              </div>
-            </div>
-          </div>
+        {activeSection === 'resources' && (
+          <IntegrationPanel
+            title="Member 1 - Resource and Assets"
+            description="Asset Inventory, Add/Edit/Delete resources, and availability toggle will connect here."
+            endpointGuide={[
+              'GET /api/resources',
+              'POST /api/resources',
+              'PUT /api/resources/{id}',
+              'DELETE /api/resources/{id}',
+              'PATCH /api/resources/{id}/status',
+            ]}
+          />
         )}
 
-        {activeNav === 'Activity' && (
-          <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-            <h3 className="text-xl font-medium mb-6">System Activity Log</h3>
+        {activeSection === 'bookings' && (
+          <IntegrationPanel
+            title="Member 2 - Booking Management"
+            description="Pending booking requests, approve/reject actions, and master calendar panel integration point."
+            endpointGuide={[
+              'GET /api/bookings?status=PENDING',
+              'PUT /api/bookings/{id}/approve',
+              'PUT /api/bookings/{id}/reject',
+              'GET /api/bookings/calendar',
+            ]}
+          />
+        )}
+
+        {activeSection === 'tickets' && (
+          <IntegrationPanel
+            title="Member 3 - Maintenance and Tickets"
+            description="Ticket inbox, technician assignment, and evidence image viewer can be plugged into this panel."
+            endpointGuide={[
+              'GET /api/tickets?status=OPEN',
+              'PUT /api/tickets/{id}/assign',
+              'PUT /api/tickets/{id}/status',
+              'GET /api/tickets/{id}/attachments',
+            ]}
+            icon={<FiImage />}
+          />
+        )}
+
+        {activeSection === 'users' && (
+          <section className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs text-slate-500">Total Users</p>
+                <p className="text-2xl font-bold text-blue-800 mt-2">{stats?.totalUsers ?? users.length}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs text-slate-500">Admins</p>
+                <p className="text-2xl font-bold mt-2 text-slate-900">{stats?.adminCount ?? 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs text-slate-500">Students</p>
+                <p className="text-2xl font-bold mt-2 text-slate-900">{stats?.studentCount ?? 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs text-slate-500">Technicians</p>
+                <p className="text-2xl font-bold mt-2 text-slate-900">{stats?.technicianCount ?? 0}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-6">
+                <h2 className="text-xl font-semibold mb-4">User Management Table</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-600">
+                        <th className="text-left py-3 px-2">Name</th>
+                        <th className="text-left py-3 px-2">Email</th>
+                        <th className="text-left py-3 px-2">Role</th>
+                        <th className="text-left py-3 px-2">Provider</th>
+                        <th className="text-left py-3 px-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((entry) => (
+                        <tr key={entry.email} className="border-b border-slate-100 hover:bg-slate-50 transition">
+                          <td className="py-3 px-2">{entry.name || 'N/A'}</td>
+                          <td className="py-3 px-2 text-slate-700">{entry.email}</td>
+                          <td className="py-3 px-2">
+                            <span className="px-3 py-1 rounded-full text-xs border border-blue-200 bg-blue-50 text-blue-700">
+                              {entry.role || 'STUDENT'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-slate-400">{entry.provider || 'local'}</td>
+                          <td className="py-3 px-2 flex items-center gap-2">
+                            <button
+                              onClick={() => startEditUser(entry)}
+                              className="p-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                              title="Edit user"
+                            >
+                              <FiEdit2 />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(entry.email)}
+                              className="p-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                              title="Delete user"
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {!busy && users.length === 0 && (
+                  <p className="text-slate-500 text-sm mt-4">No users returned from backend.</p>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <FiEdit2 />
+                    Edit User
+                  </h3>
+                  {editingUser ? (
+                    <form className="space-y-3 mb-6" onSubmit={handleEditSubmit}>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        disabled
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+                      />
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        disabled
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+                      />
+                      <select
+                        value={editForm.role}
+                        onChange={(event) => setEditForm((prev) => ({ ...prev, role: event.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                      >
+                        {ROLE_OPTIONS.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex gap-2">
+                        <button type="submit" className="flex-1 rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold hover:bg-blue-800">
+                          Save Changes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditUser}
+                          className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="text-sm text-slate-600 mb-6">Select a user from the table and click edit.</p>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <FiPlusCircle />
+                    Create User
+                  </h3>
+                  <form className="space-y-3" onSubmit={handleCreateUser}>
+                    <input
+                      type="text"
+                      placeholder="Full name"
+                      value={createForm.name}
+                      onChange={(event) => setCreateForm((prev) => ({ ...prev, name: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={createForm.email}
+                      onChange={(event) => setCreateForm((prev) => ({ ...prev, email: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={createForm.password}
+                      onChange={(event) => setCreateForm((prev) => ({ ...prev, password: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
+                    <select
+                      value={createForm.role}
+                      onChange={(event) => setCreateForm((prev) => ({ ...prev, role: event.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    >
+                      {ROLE_OPTIONS.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="submit" className="w-full rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold hover:bg-blue-800">
+                      Create Account
+                    </button>
+                  </form>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <FiSearch />
+                    Search User
+                  </h3>
+                  <form className="space-y-3" onSubmit={handleSearchUser}>
+                    <input
+                      type="email"
+                      placeholder="Search by email"
+                      value={searchEmail}
+                      onChange={(event) => setSearchEmail(event.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
+                    <button type="submit" className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50">
+                      Find User
+                    </button>
+                  </form>
+
+                  {selectedUser && (
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm space-y-1">
+                      <p>Name: {selectedUser.name || 'N/A'}</p>
+                      <p>Email: {selectedUser.email || 'N/A'}</p>
+                      <p>Role: {selectedUser.role || 'N/A'}</p>
+                      <p>Provider: {selectedUser.provider || 'N/A'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'notifications' && (
+          <section className="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 className="text-xl font-semibold mb-4">Member 4 - System Notifications</h2>
+            <form className="space-y-3" onSubmit={handleNotificationSubmit}>
+              <input
+                type="email"
+                placeholder="Recipient email"
+                value={notificationForm.userEmail}
+                onChange={(event) =>
+                  setNotificationForm((prev) => ({ ...prev, userEmail: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+
+              <select
+                value={notificationForm.type}
+                onChange={(event) =>
+                  setNotificationForm((prev) => ({ ...prev, type: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="SYSTEM">SYSTEM</option>
+                <option value="BOOKING">BOOKING</option>
+                <option value="TICKET">TICKET</option>
+                <option value="COMMENT">COMMENT</option>
+              </select>
+
+              <input
+                type="text"
+                placeholder="Title"
+                value={notificationForm.title}
+                onChange={(event) =>
+                  setNotificationForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+
+              <textarea
+                rows={4}
+                placeholder="Message"
+                value={notificationForm.message}
+                onChange={(event) =>
+                  setNotificationForm((prev) => ({ ...prev, message: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+
+              <input
+                type="text"
+                placeholder="Related ID (optional)"
+                value={notificationForm.relatedId}
+                onChange={(event) =>
+                  setNotificationForm((prev) => ({ ...prev, relatedId: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold hover:bg-blue-800"
+              >
+                Send Notification
+              </button>
+            </form>
+          </section>
+        )}
+
+        {activeSection === 'audit' && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 className="text-xl font-semibold mb-4">Member 4 - Audit Logs</h2>
             <div className="space-y-3">
-              <LogEntry time="14:46" event="Backend server restarted" status="success" />
-              <LogEntry time="14:30" event="User john@example.com logged in" status="success" />
-              <LogEntry time="14:15" event="Database backup completed" status="success" />
-              <LogEntry time="14:00" event="Security scan executed" status="warning" />
-              <LogEntry time="13:45" event="API rate limit triggered" status="error" />
+              {auditLogs.map((log) => (
+                <div key={log.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold">{log.action}</p>
+                    <p className="text-xs text-slate-500">{new Date(log.timestamp).toLocaleString()}</p>
+                  </div>
+                  <p className="text-sm text-slate-700 mt-1">{log.details}</p>
+                  <p className="text-xs text-slate-500 mt-1">Actor: {log.actor}</p>
+                </div>
+              ))}
+              {auditLogs.length === 0 && (
+                <p className="text-sm text-slate-600">No audit logs yet.</p>
+              )}
             </div>
-          </div>
+          </section>
         )}
 
-        {activeNav === 'Settings' && (
-          <div className="bg-white bg-opacity-5 rounded-3xl border border-white border-opacity-10 p-8">
-            <h3 className="text-xl font-medium mb-6">System Settings</h3>
-            <div className="space-y-4">
-              <SettingItem label="Maintenance Mode" value="Off" />
-              <SettingItem label="User Registration" value="Enabled" />
-              <SettingItem label="Email Verification" value="Required" />
-              <SettingItem label="Two-Factor Auth" value="Optional" />
-              <SettingItem label="API Rate Limit" value="1000/hour" />
+        {activeSection === 'reports' && (
+          <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h2 className="text-xl font-semibold mb-3">Report Generation</h2>
+              <p className="text-sm text-slate-600 mb-4">
+                Export admin evidence files for viva and final report.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={generateCsvReport}
+                  className="w-full rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold flex items-center justify-center gap-2 hover:bg-blue-800"
+                >
+                  <FiDownload />
+                  Export Users CSV
+                </button>
+                <button
+                  onClick={generateJsonReport}
+                  className="w-full rounded-xl bg-white border border-slate-200 px-4 py-2 font-semibold flex items-center justify-center gap-2 hover:bg-slate-50"
+                >
+                  <FiDownload />
+                  Export Summary JSON
+                </button>
+              </div>
             </div>
-          </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <FiSettings />
+                Snapshot
+              </h3>
+              <div className="space-y-2 text-sm text-slate-700">
+                <p>Total Users: {stats?.totalUsers ?? users.length}</p>
+                <p>Admins: {stats?.adminCount ?? 0}</p>
+                <p>Students: {stats?.studentCount ?? 0}</p>
+                <p>Lecturers: {stats?.lecturerCount ?? 0}</p>
+                <p>Technicians: {stats?.technicianCount ?? 0}</p>
+                <p>Audit Entries: {auditLogs.length}</p>
+              </div>
+            </div>
+          </section>
         )}
       </main>
     </div>
   );
 };
 
-const NavItem = ({ icon, label, active = false, onClick = () => {} }) => (
-  <div onClick={onClick} className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition ${active ? 'bg-red-600 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-white hover:bg-opacity-5 hover:text-white'}`}>
-    <span className="text-xl">{icon}</span>
-    <span className="font-medium">{label}</span>
-  </div>
-);
+const IntegrationPanel = ({ title, description, endpointGuide, icon = <FiDatabase /> }) => (
+  <section className="rounded-2xl border border-slate-200 bg-white p-6">
+    <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+      {icon}
+      {title}
+    </h2>
+    <p className="text-sm text-slate-600 mb-4">{description}</p>
 
-const StatCard = ({ title, value, color }) => (
-  <div className={`p-6 rounded-3xl bg-gradient-to-br ${color} shadow-lg hover:shadow-xl transition`}>
-    <p className="text-white text-opacity-80 text-sm mb-1">{title}</p>
-    <h4 className="text-3xl font-bold text-white">{value}</h4>
-  </div>
-);
-
-const ActivityRow = ({ icon, text, user, time }) => (
-  <div className="flex justify-between items-center p-4 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-5 hover:bg-opacity-10 transition">
-    <div className="flex items-center gap-4">
-      <span className="text-2xl">{icon}</span>
-      <div>
-        <p className="text-slate-300 font-medium">{text}</p>
-        <p className="text-xs text-slate-500">By: {user}</p>
+    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+      <p className="text-sm font-semibold text-blue-900 mb-2">Integration Contract</p>
+      <div className="space-y-2 text-sm text-blue-900">
+        {endpointGuide.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
       </div>
     </div>
-    <span className="text-sm text-slate-500">{time}</span>
-  </div>
-);
-
-const LogEntry = ({ time, event, status }) => (
-  <div className={`flex justify-between items-center p-4 rounded-2xl border border-white border-opacity-10 ${status === 'success' ? 'bg-green-500/10' : status === 'warning' ? 'bg-yellow-500/10' : 'bg-red-500/10'}`}>
-    <div>
-      <p className="text-slate-300 font-medium">{event}</p>
-      <p className="text-xs text-slate-500">{time}</p>
-    </div>
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${status === 'success' ? 'bg-green-500 bg-opacity-20 text-green-300' : status === 'warning' ? 'bg-yellow-500 bg-opacity-20 text-yellow-300' : 'bg-red-500 bg-opacity-20 text-red-300'}`}>
-      {status.toUpperCase()}
-    </span>
-  </div>
-);
-
-const SettingItem = ({ label, value }) => (
-  <div className="flex justify-between items-center p-4 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-5 hover:bg-opacity-10 transition cursor-pointer">
-    <span className="text-slate-300">{label}</span>
-    <span className="px-4 py-2 bg-blue-500 bg-opacity-20 rounded-lg text-blue-300 font-medium">{value}</span>
-  </div>
+  </section>
 );
 
 export default AdminDashboard;

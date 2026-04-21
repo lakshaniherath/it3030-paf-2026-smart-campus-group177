@@ -28,13 +28,18 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setName(oauthUser.getAttribute("name"));
+            newUser.setProvider("oauth_google");
+            newUser.setRole("STUDENT");
             return userRepository.save(newUser);
         });
 
         if (user.getRole() == null) {
-            response.sendRedirect("/choose-role");
+            user.setRole("STUDENT");
+            userRepository.save(user);
         } else {
-            response.sendRedirect("/dashboard");
+            userRepository.save(user);
         }
+
+        response.sendRedirect("/dashboard");
     }
 }

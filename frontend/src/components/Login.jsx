@@ -63,185 +63,181 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4">
-      <div className="w-full max-w-5xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left Side - Hero Section */}
-          <div className="hidden lg:block">
-            <div className="space-y-8">
-              {/* Branding */}
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <span className="text-2xl text-white font-bold">SC</span>
-                  </div>
-                  <h1 className="text-4xl font-bold">Smart Campus</h1>
-                </div>
-                <p className="text-xl text-gray-300">Group 177 - IT3030</p>
-              </div>
+    <div className="min-h-screen bg-[#07111f] text-slate-100 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl animate-blob"></div>
+        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/3 h-[28rem] w-[28rem] rounded-full bg-sky-400/10 blur-3xl animate-blob animation-delay-4000"></div>
+      </div>
 
-              {/* Features */}
-              <div className="space-y-4 pt-8 border-t border-gray-700">
-                <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Why Choose Smart Campus?</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
-                      <FiBook className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Course Management</h4>
-                      <p className="text-gray-400 text-sm">Effortlessly manage and track all your courses</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
-                      <FiCalendar className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Event Scheduling</h4>
-                      <p className="text-gray-400 text-sm">Never miss important deadlines and events</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
-                      <FiUsers className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold">Collaboration</h4>
-                      <p className="text-gray-400 text-sm">Connect and collaborate with peers and faculty</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Statistics */}
-              <div className="grid grid-cols-3 gap-4 pt-8 border-t border-gray-700">
-                <div>
-                  <p className="text-3xl font-bold text-blue-400">2000+</p>
-                  <p className="text-gray-400 text-sm">Active Users</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-purple-400">500+</p>
-                  <p className="text-gray-400 text-sm">Courses</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-pink-400">150+</p>
-                  <p className="text-gray-400 text-sm">Institutions</p>
-                </div>
-              </div>
+      <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
+        <div className="hidden lg:block">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200 shadow-lg shadow-cyan-500/5">
+              <span className="h-2 w-2 rounded-full bg-cyan-300"></span>
+              Secure access to the Smart Campus Operations Hub
             </div>
-          </div>
 
-          {/* Right Side - Login Form */}
-          <div className="w-full">
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-gray-700">
-              
-              <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-white mb-2">Welcome Back</h2>
-                <p className="text-gray-400">Sign in to your Smart Campus account</p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950 font-black shadow-lg shadow-cyan-500/20">
+                  SC
+                </div>
+                <div>
+                  <h1 className="text-4xl font-black tracking-tight text-white">Smart Campus</h1>
+                  <p className="text-slate-400">Group 177 - IT3030</p>
+                </div>
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 p-4 rounded-lg bg-red-500 bg-opacity-10 border border-red-500 border-opacity-50 text-red-300 text-sm flex items-start gap-3 animate-in fade-in duration-300">
-                  <span className="text-lg">⚠️</span>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Login Form */}
-              <form onSubmit={handleLogin} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="text-gray-300 text-sm font-medium">Email Address</label>
-                  <input 
-                    type="email" 
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-gray-300 text-sm font-medium">Password</label>
-                  <input 
-                    type="password" 
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <label className="flex items-center gap-2 text-gray-300 text-sm cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 rounded border-gray-600" />
-                    <span>Remember me</span>
-                  </label>
-                  <a href="#forgot" className="text-blue-400 hover:text-blue-300 text-sm font-medium transition">
-                    Forgot password?
-                  </a>
-                </div>
-                
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 rounded-xl shadow-lg transition duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 group"
-                >
-                  {loading ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Signing In...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign In</span>
-                      <FiArrowRight className="group-hover:translate-x-1 transition" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="flex items-center gap-4 my-8">
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-700 to-transparent"></div>
-                <span className="text-gray-400 text-sm font-medium">OR</span>
-                <div className="flex-1 h-px bg-gradient-to-l from-gray-700 to-transparent"></div>
-              </div>
-
-              {/* Google Login Button */}
-              <button 
-                onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 rounded-xl transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <FcGoogle size={24} />
-                <span>Continue with Google</span>
-              </button>
-
-              {/* Sign Up Link */}
-              <p className="text-center text-gray-400 text-sm mt-8">
-                Don't have an account? 
-                <span 
-                  className="text-blue-400 font-semibold cursor-pointer hover:text-blue-300 ml-1 transition" 
-                  onClick={() => navigate('/register')}
-                >
-                  Create one now
-                </span>
+              <p className="max-w-xl text-lg leading-8 text-slate-300">
+                A refined campus management experience for bookings, incidents, notifications, and role-based access.
               </p>
             </div>
 
-            {/* Footer Text */}
-            <p className="text-center text-gray-500 text-xs mt-8">
-              By signing in, you agree to our Terms of Service and Privacy Policy
+            <div className="grid gap-4 rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+              <FeatureLine
+                icon={<FiBook className="text-cyan-300" size={18} />}
+                title="Operations-first layout"
+                description="Clear structure designed around the workflows your users actually need."
+              />
+              <FeatureLine
+                icon={<FiCalendar className="text-cyan-300" size={18} />}
+                title="Fast navigation"
+                description="A simple path into the system without visual clutter or noise."
+              />
+              <FeatureLine
+                icon={<FiUsers className="text-sky-300" size={18} />}
+                title="Role-aware access"
+                description="Student, lecturer, technician, and admin all feel consistent."
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <MetricBlock value="2000+" label="Active users" />
+              <MetricBlock value="500+" label="Resources" />
+              <MetricBlock value="150+" label="Institutions" />
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="rounded-[2rem] border border-white/10 bg-slate-950/75 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8 lg:p-10">
+            <div className="mb-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950 font-black shadow-lg shadow-cyan-500/20 lg:hidden">
+                SC
+              </div>
+              <h2 className="text-3xl font-bold text-white sm:text-4xl">Welcome Back</h2>
+              <p className="mt-2 text-slate-400">Sign in to continue to your Smart Campus dashboard</p>
+            </div>
+
+            {error && (
+              <div className="mb-6 flex items-start gap-3 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-200">
+                <span className="text-lg">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2 text-sm">
+                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/20" />
+                  <span>Remember me</span>
+                </label>
+                <a href="#forgot" className="font-medium text-cyan-300 transition hover:text-cyan-200">
+                  Forgot password?
+                </a>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-6 py-3.5 font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-cyan-500/25 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <FiArrowRight className="transition group-hover:translate-x-1" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="my-8 flex items-center gap-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Or continue with</span>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition hover:border-cyan-400/25 hover:bg-white/10"
+            >
+              <FcGoogle size={24} />
+              <span>Continue with Google</span>
+            </button>
+
+            <p className="mt-8 text-center text-sm text-slate-400">
+              Don't have an account?{' '}
+              <span
+                className="cursor-pointer font-semibold text-cyan-300 transition hover:text-cyan-200"
+                onClick={() => navigate('/register')}
+              >
+                Create one now
+              </span>
             </p>
           </div>
+
+          <p className="mt-6 text-center text-xs text-slate-500">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
         </div>
       </div>
     </div>
   );
 };
+
+const FeatureLine = ({ icon, title, description }) => (
+  <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-slate-900/60 p-4">
+    <div className="mt-0.5 rounded-2xl bg-white/5 p-2">{icon}</div>
+    <div>
+      <h4 className="font-semibold text-white">{title}</h4>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+    </div>
+  </div>
+);
+
+const MetricBlock = ({ value, label }) => (
+  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
+    <p className="text-2xl font-black text-white">{value}</p>
+    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">{label}</p>
+  </div>
+);
 
 export default Login;

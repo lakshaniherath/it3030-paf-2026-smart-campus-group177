@@ -76,18 +76,24 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3c72] to-[#2a5298] p-4">
+    <div className="min-h-screen overflow-hidden bg-[#07111f] p-4 text-slate-100">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute -top-24 left-[-8rem] h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl animate-blob"></div>
+        <div className="absolute top-16 right-[-6rem] h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl animate-blob animation-delay-2000"></div>
+      </div>
+
       {/* Glassmorphism Card */}
-      <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white border-opacity-20 w-full max-w-md">
+      <div className="relative mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-md items-center justify-center">
+      <div className="w-full rounded-[2rem] border border-white/10 bg-slate-950/75 p-8 shadow-2xl shadow-black/30 backdrop-blur-xl">
         
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-blue-100 opacity-80">Smart Campus Group 177</p>
+          <p className="text-slate-400">Smart Campus Group 177</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500 bg-opacity-20 border border-red-400 text-red-200 text-sm">
+          <div className="mb-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-200">
             {error}
           </div>
         )}
@@ -101,7 +107,7 @@ const Register = () => {
               placeholder="Full Name" 
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
             />
           </div>
           <div>
@@ -111,7 +117,7 @@ const Register = () => {
               placeholder="Email Address" 
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
             />
           </div>
           <div>
@@ -121,7 +127,7 @@ const Register = () => {
               placeholder="Password" 
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
             />
           </div>
           <div>
@@ -131,14 +137,14 @@ const Register = () => {
               placeholder="Confirm Password" 
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
             />
           </div>
           
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-xl shadow-lg transition duration-300 transform hover:-translate-y-1"
+            className="w-full rounded-2xl bg-cyan-400 py-3 font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition duration-300 hover:-translate-y-1 disabled:opacity-70"
           >
             {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
@@ -146,28 +152,30 @@ const Register = () => {
 
         {/* Divider */}
         <div className="flex items-center my-6">
-          <div className="flex-1 h-px bg-white bg-opacity-30"></div>
-          <span className="px-4 text-blue-100 text-sm">OR</span>
-          <div className="flex-1 h-px bg-white bg-opacity-30"></div>
+          <div className="flex-1 h-px bg-white/10"></div>
+          <span className="px-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">OR</span>
+          <div className="flex-1 h-px bg-white/10"></div>
         </div>
 
         {/* Google Register Button */}
         <button 
           onClick={handleGoogleRegister}
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-medium py-3 rounded-xl transition duration-300 shadow-md"
+          type="button"
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 py-3 font-medium text-white transition duration-300 hover:bg-white/10"
         >
           <FcGoogle size={24} />
           <span>Continue with Google</span>
         </button>
 
-        <p className="text-center text-blue-100 text-sm mt-8">
+        <p className="text-center text-slate-400 text-sm mt-8">
           Already have an account? <span 
-            className="font-semibold cursor-pointer hover:underline" 
+            className="font-semibold cursor-pointer text-cyan-300 hover:text-cyan-200" 
             onClick={() => navigate('/login')}
           >
             Sign In
           </span>
         </p>
+      </div>
       </div>
     </div>
   );

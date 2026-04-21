@@ -3,37 +3,44 @@ import { FiBell, FiX, FiTrash2 } from 'react-icons/fi';
 
 const NotificationPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      type: 'BOOKING',
-      title: 'Booking Approved',
-      message: 'Your booking for Conference Room A has been approved.',
-      read: false,
-      createdAt: new Date(Date.now() - 5 * 60000),
-      relatedId: 'booking-123'
-    },
-    {
-      id: '2',
-      type: 'TICKET',
-      title: 'Ticket Status Updated',
-      message: 'Your maintenance ticket is now in progress.',
-      read: false,
-      createdAt: new Date(Date.now() - 15 * 60000),
-      relatedId: 'ticket-456'
-    },
-    {
-      id: '3',
-      type: 'COMMENT',
-      title: 'New Comment',
-      message: 'John Doe commented on your ticket.',
-      read: true,
-      createdAt: new Date(Date.now() - 2 * 3600000),
-      relatedId: 'ticket-456'
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState('all'); // all, booking, ticket, comment
+
+  const getAuthHeaders = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const headers = {
+      'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+    };
+
+    if (user.email) {
+      headers['X-User-Email'] = user.email;
+    }
+
+    return headers;
+  };
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/notifications', {
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+        setNotifications([]);
+      }
+    };
+
+    loadNotifications();
+  }, []);
 
   useEffect(() => {
     const unread = notifications.filter(n => !n.read).length;
@@ -44,9 +51,7 @@ const NotificationPanel = () => {
     try {
       await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
+        headers: getAuthHeaders()
       });
       setNotifications(notifications.map(n =>
         n.id === id ? { ...n, read: true } : n
@@ -60,9 +65,7 @@ const NotificationPanel = () => {
     try {
       await fetch(`http://localhost:8080/api/notifications/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
+        headers: getAuthHeaders()
       });
       setNotifications(notifications.filter(n => n.id !== id));
     } catch (error) {
@@ -74,9 +77,7 @@ const NotificationPanel = () => {
     try {
       await fetch('http://localhost:8080/api/notifications/mark-all-read', {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
+        headers: getAuthHeaders()
       });
       setNotifications(notifications.map(n => ({ ...n, read: true })));
     } catch (error) {
@@ -119,7 +120,7 @@ const NotificationPanel = () => {
     <div className="fixed top-6 right-6 z-50">
       {/* Notification Bell Button */}
       <button
-        className="relative w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-110"
+        className="relative w-12 h-12 rounded-full bg-cyan-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-110"
         onClick={() => setIsOpen(!isOpen)}
         title="Notifications"
       >
@@ -133,9 +134,9 @@ const NotificationPanel = () => {
 
       {/* Notification Panel */}
       {isOpen && (
-        <div className="absolute top-16 right-0 w-96 h-screen md:h-auto md:max-h-96 bg-white rounded-lg shadow-2xl flex flex-col animate-in slide-in-from-top-2 duration-300 overflow-hidden">
+        <div className="absolute top-16 right-0 w-96 h-screen md:h-auto md:max-h-96 rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-2xl flex flex-col animate-in slide-in-from-top-2 duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white p-4 flex justify-between items-center flex-shrink-0">
+          <div className="bg-slate-900 text-white p-4 flex justify-between items-center flex-shrink-0 border-b border-white/10">
             <h2 className="font-bold text-lg">Notifications</h2>
             <button
               className="hover:bg-white hover:bg-opacity-20 p-1 rounded transition"
@@ -147,7 +148,7 @@ const NotificationPanel = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2 p-3 border-b border-gray-200 bg-gray-50 overflow-x-auto flex-shrink-0">
+          <div className="flex gap-2 p-3 border-b border-white/10 bg-slate-950 overflow-x-auto flex-shrink-0">
             {['all', 'booking', 'ticket', 'comment'].map((filterType) => {
               const counts = {
                 all: notifications.length,
@@ -167,8 +168,8 @@ const NotificationPanel = () => {
                   onClick={() => setFilter(filterType)}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition whitespace-nowrap ${
                     filter === filterType
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-500'
+                      ? 'bg-cyan-400 text-slate-950'
+                      : 'bg-white/5 text-slate-200 border border-white/10 hover:border-cyan-400/30'
                   }`}
                 >
                   {labels[filterType]} ({counts[filterType]})
@@ -179,9 +180,9 @@ const NotificationPanel = () => {
 
           {/* Action Buttons */}
           {unreadCount > 0 && (
-            <div className="px-4 py-2 bg-blue-50 border-b border-gray-200 flex-shrink-0">
+            <div className="px-4 py-2 bg-white/5 border-b border-white/10 flex-shrink-0">
               <button
-                className="w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition text-sm font-medium"
+                className="w-full px-3 py-2 bg-cyan-400 text-slate-950 rounded-xl transition text-sm font-semibold"
                 onClick={handleMarkAllAsRead}
               >
                 Mark all as read
@@ -195,8 +196,8 @@ const NotificationPanel = () => {
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition flex gap-3 items-start ${
-                    !notification.read ? 'bg-blue-50 border-l-4 border-l-purple-500' : ''
+                  className={`p-4 border-b border-white/5 hover:bg-white/5 cursor-pointer transition flex gap-3 items-start ${
+                    !notification.read ? 'bg-cyan-500/10 border-l-4 border-l-cyan-400' : ''
                   }`}
                   onClick={() => !notification.read && handleMarkAsRead(notification.id)}
                 >
@@ -205,19 +206,19 @@ const NotificationPanel = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-800 text-sm">{notification.title}</h4>
-                    <p className="text-gray-600 text-xs mt-1 line-clamp-2">{notification.message}</p>
-                    <span className="text-gray-400 text-xs mt-1 block">
+                    <h4 className="font-semibold text-slate-100 text-sm">{notification.title}</h4>
+                    <p className="text-slate-400 text-xs mt-1 line-clamp-2">{notification.message}</p>
+                    <span className="text-slate-500 text-xs mt-1 block">
                       {formatTime(notification.createdAt)}
                     </span>
                   </div>
 
                   <div className="flex items-start gap-2 flex-shrink-0">
                     {!notification.read && (
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full mt-2"></div>
                     )}
                     <button
-                      className="text-gray-400 hover:text-red-500 transition p-1"
+                      className="text-slate-500 hover:text-rose-400 transition p-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteNotification(notification.id);
@@ -231,18 +232,18 @@ const NotificationPanel = () => {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4">
-                <FiBell size={48} className="text-gray-300 mb-3" />
-                <h3 className="font-semibold text-gray-600">No Notifications</h3>
-                <p className="text-gray-400 text-sm">You're all caught up!</p>
+                <FiBell size={48} className="text-slate-600 mb-3" />
+                <h3 className="font-semibold text-slate-300">No Notifications</h3>
+                <p className="text-slate-500 text-sm">You're all caught up!</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="p-3 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          <div className="p-3 border-t border-white/10 bg-slate-950 flex-shrink-0">
             <a
               href="#settings"
-              className="text-center text-sm text-purple-600 hover:text-purple-700 font-medium transition block"
+              className="text-center text-sm text-cyan-300 hover:text-cyan-200 font-medium transition block"
             >
               Notification Settings
             </a>

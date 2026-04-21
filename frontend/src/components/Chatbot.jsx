@@ -98,7 +98,7 @@ const Chatbot = () => {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chatbot Toggle Button */}
       <button
-        className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center relative ${
+        className={`w-16 h-16 rounded-full bg-cyan-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center relative ${
           isOpen ? 'scale-95' : 'hover:scale-110'
         }`}
         onClick={() => setIsOpen(!isOpen)}
@@ -114,9 +114,9 @@ const Chatbot = () => {
 
       {/* Chatbot Window */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-96 h-screen md:h-96 md:max-h-96 bg-white rounded-lg shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300">
+        <div className="absolute bottom-20 right-0 w-96 h-screen md:h-96 md:max-h-96 rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white p-4 rounded-t-lg flex justify-between items-start">
+          <div className="bg-slate-900 text-white p-4 flex justify-between items-start border-b border-white/10">
             <div>
               <h3 className="font-bold text-lg">Smart Campus Assistant</h3>
               <p className="text-sm opacity-90">Always here to help</p>
@@ -131,7 +131,7 @@ const Chatbot = () => {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-950">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -143,8 +143,8 @@ const Chatbot = () => {
                 <div
                   className={`max-w-xs px-4 py-2 rounded-lg ${
                     msg.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-none'
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                      ? 'bg-cyan-500 text-white rounded-br-none'
+                      : 'bg-white/5 border border-white/10 text-slate-100 rounded-bl-none'
                   }`}
                 >
                   <p className="text-sm">{msg.text}</p>
@@ -164,10 +164,10 @@ const Chatbot = () => {
             {isLoading && (
               <div className="flex justify-start gap-2">
                 <div className="text-2xl">🤖</div>
-                <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg rounded-bl-none flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-lg rounded-bl-none flex gap-1">
+                  <span className="w-2 h-2 bg-cyan-300 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-cyan-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                  <span className="w-2 h-2 bg-cyan-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
                 </div>
               </div>
             )}
@@ -176,13 +176,13 @@ const Chatbot = () => {
 
           {/* Quick Questions */}
           {messages.length <= 1 && (
-            <div className="px-4 py-3 border-t border-gray-200 bg-white">
-              <p className="text-xs font-semibold text-gray-600 mb-2">Popular questions:</p>
+            <div className="px-4 py-3 border-t border-white/10 bg-slate-950">
+              <p className="text-xs font-semibold text-slate-400 mb-2">Popular questions:</p>
               <div className="space-y-2">
                 {quickQuestions.map((q, idx) => (
                   <button
                     key={idx}
-                    className="w-full text-left text-sm px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded transition border border-blue-200"
+                    className="w-full text-left text-sm px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-100 border border-white/10 transition"
                     onClick={() => {
                       setInputValue(q);
                       setTimeout(() => handleSendMessage(), 100);
@@ -196,7 +196,7 @@ const Chatbot = () => {
           )}
 
           {/* Input Area */}
-          <div className="flex gap-2 p-4 border-t border-gray-200 bg-white rounded-b-lg">
+          <div className="flex gap-2 p-4 border-t border-white/10 bg-slate-950">
             <input
               type="text"
               placeholder="Ask me anything..."
@@ -208,10 +208,10 @@ const Chatbot = () => {
                 }
               }}
               disabled={isLoading}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
+              className="flex-1 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 focus:border-cyan-400/40 disabled:opacity-50"
             />
             <button
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50"
+              className="px-4 py-2 bg-cyan-400 text-slate-950 rounded-xl hover:opacity-90 transition disabled:opacity-50"
               onClick={handleSendMessage}
               disabled={isLoading || inputValue.trim() === ''}
               title="Send message"

@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -26,9 +29,17 @@ public class NotificationController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getUserNotifications(
-            @RequestParam(defaultValue = "false") boolean unreadOnly) {
+            @RequestParam(defaultValue = "false") boolean unreadOnly,
+            Authentication authentication,
+            HttpServletRequest request) {
         try {
-            String userEmail = getUserEmailFromContext();
+            String userEmail = getUserEmailFromContext(authentication, request);
+            if (userEmail == null || userEmail.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Unable to determine current user",
+                    "status", "error"
+                ));
+            }
             List<Notification> notifications = unreadOnly 
                 ? notificationService.getUnreadNotifications(userEmail)
                 : notificationService.getUserNotifications(userEmail);
@@ -109,9 +120,15 @@ public class NotificationController {
      */
     @PutMapping("/mark-all-read")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> markAllAsRead() {
+    public ResponseEntity<?> markAllAsRead(Authentication authentication, HttpServletRequest request) {
         try {
-            String userEmail = getUserEmailFromContext();
+            String userEmail = getUserEmailFromContext(authentication, request);
+            if (userEmail == null || userEmail.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Unable to determine current user",
+                    "status", "error"
+                ));
+            }
             int count = notificationService.markAllAsRead(userEmail);
             return ResponseEntity.ok(Map.of(
                 "message", "All notifications marked as read",
@@ -190,9 +207,15 @@ public class NotificationController {
      */
     @GetMapping("/count/unread")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getUnreadCount() {
+    public ResponseEntity<?> getUnreadCount(Authentication authentication, HttpServletRequest request) {
         try {
-            String userEmail = getUserEmailFromContext();
+            String userEmail = getUserEmailFromContext(authentication, request);
+            if (userEmail == null || userEmail.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Unable to determine current user",
+                    "status", "error"
+                ));
+            }
             int count = notificationService.getUnreadCount(userEmail);
             return ResponseEntity.ok(Map.of(
                 "message", "Unread count retrieved",
@@ -208,11 +231,63 @@ public class NotificationController {
     }
 
     /**
-     * Helper method to get user email from security context
+     * Get notifications by type for the current user
+     * GET /api/notifications/type/{type}
      */
-    private String getUserEmailFromContext() {
-        // In a real scenario, this would be extracted from the JWT token
-        // For now, returning a placeholder
-        return "user@example.com";
+    @GetMapping("/type/{type}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getNotificationsByType(
+            @PathVariable String type,
+            Authentication authentication,
+            HttpServletRequest request) {
+        try {
+            String userEmail = getUserEmailFromContext(authentication, request);
+            if (userEmail == null || userEmail.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Unable to determine current user",
+                    "status", "error"
+                ));
+            }
+
+            List<Notification> notifications = notificationService.getNotificationsByType(userEmail, type);
+            return ResponseEntity.ok(Map.of(
+                "message", "Notifications retrieved successfully",
+                "count", notifications.size(),
+                "notifications", notifications,
+                "status", "success"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "message", "Error retrieving notifications by type: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
+
+    /**
+     * Backward compatible support for frontend/local auth demo.
+     */
+    private String getUserEmailFromContext(Authentication authentication, HttpServletRequest request) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof OAuth2User oauth2User) {
+                Object email = oauth2User.getAttribute("email");
+                if (email != null) {
+                    return email.toString();
+                }
+            }
+
+            String name = authentication.getName();
+            if (name != null && !name.isBlank() && !"anonymousUser".equals(name)) {
+                return name;
+            }
+        }
+
+        String headerEmail = request.getHeader("X-User-Email");
+        if (headerEmail != null && !headerEmail.isBlank()) {
+            return headerEmail;
+        }
+
+        return request.getParameter("userEmail");
     }
 }

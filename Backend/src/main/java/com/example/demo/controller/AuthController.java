@@ -5,6 +5,7 @@ import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
@@ -139,6 +140,7 @@ public class AuthController {
     }
 
     @PutMapping("/api/auth/user/{email}/role")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
     public ResponseEntity<Map<String, Object>> updateUserRole(@PathVariable String email, @RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         try {
