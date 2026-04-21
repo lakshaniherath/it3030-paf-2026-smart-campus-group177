@@ -9,10 +9,8 @@ import {
   FiRefreshCw,
   FiTool,
   FiUser,
-  FiDatabase,
 } from 'react-icons/fi';
 import { apiFetch, getStoredUser } from '../utils/api';
-import ResourcesCatalogPage from '../features/resources/pages/ResourcesCatalogPage';
 
 const PROFILE_KEY = 'studentProfile';
 
@@ -159,7 +157,6 @@ const UserDashboard = () => {
           <nav className="mt-8 space-y-2">
             {[
               { id: 'OVERVIEW', label: 'Overview', icon: <FiHome /> },
-              { id: 'RESOURCES_M1', label: 'Resource Catalog (M1)', icon: <FiDatabase /> },
               { id: 'NOTIFICATIONS', label: 'Notification Bell', icon: <FiBell /> },
               { id: 'PROFILE', label: 'User Profile', icon: <FiUser /> },
               { id: 'BOOKING_SUMMARY_M12', label: 'Booking Summary (M1/M2)', icon: <FiCalendar /> },
@@ -217,12 +214,6 @@ const UserDashboard = () => {
           {success && (
             <div className="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-800 text-sm">
               {success}
-            </div>
-          )}
-
-          {activeSection === 'RESOURCES_M1' && (
-            <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm mb-6">
-              <ResourcesCatalogPage />
             </div>
           )}
 

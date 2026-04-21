@@ -44,7 +44,6 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login/**", "/oauth2/**", "/api/auth/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
                 .requestMatchers("/api/chatbot/**").permitAll()
-                .requestMatchers("/api/resources/**").permitAll() // Added from member-01
                 .requestMatchers("/api/**").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 // අනිත් හැම එකකටම ලොග් වෙලා ඉන්න ඕනේ

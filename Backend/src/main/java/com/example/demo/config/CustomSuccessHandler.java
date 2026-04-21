@@ -17,6 +17,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
+
     @Autowired
     private UserRepository userRepository;
 

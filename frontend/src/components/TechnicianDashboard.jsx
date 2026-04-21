@@ -10,10 +10,10 @@ import {
   FiTool,
 } from 'react-icons/fi';
 import { apiFetch, getStoredUser } from '../utils/api';
-import ResourcesCatalogPage from '../features/resources/pages/ResourcesCatalogPage';
 
 const TechnicianDashboard = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('OVERVIEW');
@@ -48,6 +48,7 @@ const TechnicianDashboard = () => {
       return;
     }
 
+    setUser(storedUser);
     loadNotifications().finally(() => setLoading(false));
   }, [navigate, loadNotifications]);
 
@@ -234,9 +235,14 @@ const TechnicianDashboard = () => {
           )}
 
           {activeSection === 'RESOURCE_STATUS_M1' && (
-            <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-              <ResourcesCatalogPage />
-            </div>
+            <section className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold mb-3">Resource Availability Status (Integration)</h2>
+              <p className="text-sm text-slate-700 leading-6">
+                This dashboard only surfaces integration visibility for Member 1 resource status updates. Resource status change actions
+                remain in Member 1 maintenance/resource module. Any OUT_OF_SERVICE or ACTIVE updates can be surfaced here through
+                notifications once their endpoints emit alerts.
+              </p>
+            </section>
           )}
         </main>
       </div>

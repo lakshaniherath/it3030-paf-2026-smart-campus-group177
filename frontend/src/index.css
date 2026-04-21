@@ -7,11 +7,9 @@ html {
   scroll-behavior: smooth;
 }
 
-@layer base {
-  body {
-    @apply bg-background text-text-primary antialiased;
-    font-family: Poppins, Manrope, "Segoe UI", sans-serif;
-  }
+body {
+  @apply bg-blue-50 text-slate-800 antialiased;
+  font-family: Poppins, Manrope, "Segoe UI", sans-serif;
 }
 
 @layer utilities {

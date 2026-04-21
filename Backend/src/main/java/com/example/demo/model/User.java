@@ -3,6 +3,8 @@ package com.example.demo.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "users")
 public class User {
@@ -14,6 +16,7 @@ public class User {
     private String role; // STUDENT, LECTURER, ADMIN, TECHNICIAN
     private String provider; // oauth_google or local
     private Date createdAt = new Date();
+    private List<String> favoriteResources = new ArrayList<>(); // List of favorite resource IDs
 
     // Getters and Setters
     public String getId() { return id; }
@@ -30,4 +33,6 @@ public class User {
     public void setProvider(String provider) { this.provider = provider; }
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public List<String> getFavoriteResources() { return favoriteResources; }
+    public void setFavoriteResources(List<String> favoriteResources) { this.favoriteResources = favoriteResources; }
 }

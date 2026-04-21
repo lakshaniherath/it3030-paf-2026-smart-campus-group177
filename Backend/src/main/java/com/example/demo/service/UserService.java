@@ -16,6 +16,7 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -23,6 +24,7 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
     public void updateUserRole(String email, String role) {
         userRepository.findByEmail(email).ifPresent(user -> {
             user.setRole(role);

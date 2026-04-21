@@ -97,7 +97,7 @@ SecurityConfig.java
 ├─ OAuth2: Google login enabled
 ├─ PasswordEncoder: BCryptPasswordEncoder
 ├─ Method Security: @EnableMethodSecurity(prePostEnabled = true)
-└─ Protected Endpoints: All except /login/**, /oauth2/**, /api/auth/**, /api/chatbot/**
+└─ Protected Endpoints: All except /login/**, /oauth2/**, /api/auth/**
 
 AdminController.java
 ├─ All methods: @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
@@ -179,7 +179,7 @@ Password: Password123
 ### Via API
 ```powershell
 $body = @{role="LECTURER"} | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:8080/api/admin/users/email@example.com/role" `
+Invoke-RestMethod -Uri "http://localhost:8080/api/auth/user/email@example.com/role" `
   -Method PUT -ContentType "application/json" -Body $body
 ```
 
