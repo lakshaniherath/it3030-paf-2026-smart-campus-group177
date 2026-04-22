@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 /* src/index.css */
+=======
+>>>>>>> member-01
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+<<<<<<< HEAD
 html {
   scroll-behavior: smooth;
 }
@@ -52,3 +56,10 @@ body {
     }
   }
 }
+=======
+@layer base {
+  body {
+    @apply bg-background text-text-primary antialiased;
+  }
+}
+>>>>>>> member-01

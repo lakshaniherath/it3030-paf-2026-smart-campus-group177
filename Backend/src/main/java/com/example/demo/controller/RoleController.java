@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+<<<<<<< HEAD
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -13,11 +14,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+=======
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+>>>>>>> member-01
 public class RoleController {
     @Autowired
     private UserService userService;
 
     @GetMapping("/choose-role")
+<<<<<<< HEAD
     public ResponseEntity<Map<String, String>> chooseRole() {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Select your role from the frontend");
@@ -48,5 +59,14 @@ public class RoleController {
             response.put("status", "error");
             return ResponseEntity.status(400).body(response);
         }
+=======
+    public String chooseRole() { return "role-selection"; }
+
+    @GetMapping("/set-role")
+    public String setRole(@RequestParam String role, Authentication auth) {
+        OAuth2User user = (OAuth2User) auth.getPrincipal();
+        userService.updateUserRole(user.getAttribute("email"), role);
+        return "redirect:/dashboard";
+>>>>>>> member-01
     }
 }

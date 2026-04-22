@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+<<<<<<< HEAD
 import com.example.demo.model.User;
 import com.example.demo.service.PasswordResetService;
 import com.example.demo.service.UserService;
@@ -283,4 +284,16 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+=======
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class AuthController {
+    @GetMapping("/login")
+    public String login() { return "login"; }
+
+    @GetMapping("/dashboard")
+    public String dashboard() { return "dashboard"; }
+>>>>>>> member-01
 }
