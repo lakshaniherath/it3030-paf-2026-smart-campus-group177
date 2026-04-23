@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
+@CrossOrigin(origins = "*")
 public class ItemController {
 
     @Autowired
@@ -32,7 +33,7 @@ public class ItemController {
 
         List<String> fileNames = new ArrayList<>();
         for (MultipartFile file : files) {
-            String savedName = fileStorageService.saveFile(file);
+            String savedName = fileStorageService.uploadFile(file);
             fileNames.add(savedName);
         }
 
@@ -44,6 +45,6 @@ public class ItemController {
 
         mongoTemplate.save(post);
 
-        return "සාර්ථකව සේව් වුණා! දැන් ඔයාගේ MongoDB Dashboard එක බලන්න.";
+        return " Successfully saved! Now check your MongoDB Dashboard.";
     }
 }

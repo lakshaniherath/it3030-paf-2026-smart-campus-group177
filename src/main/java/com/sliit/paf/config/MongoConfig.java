@@ -20,7 +20,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     public MongoClient mongoClient() {
         // ඔයාගේ MongoDB URI එක මෙතන කෙලින්ම String එකක් විදිහට දෙන්න
         // එතකොට properties file එකේ encoding ප්‍රශ්න එන්නේ නැහැ
-        ConnectionString connectionString = new ConnectionString("mongodb+srv://paf_admin:Sliit%40123@cluster0.cf9wlji.mongodb.net/smart_campus?retryWrites=true&w=majority");
+        ConnectionString connectionString = new ConnectionString("mongodb+srv://paf_admin:Sliit%40123@cluster0.cf9wlji.mongodb.net/smart_campus?retryWrites=true&w=majority&authSource=admin");
         
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)

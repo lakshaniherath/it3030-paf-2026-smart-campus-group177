@@ -8,3 +8,4 @@ com\sliit\paf\config\CloudinaryConfig.class
 com\sliit\paf\service\FileStorageService.class
 com\sliit\paf\SmartCampusApplication.class
 com\sliit\paf\maintenance\Ticket.class
+com\sliit\paf\maintenance\WebConfig.class
