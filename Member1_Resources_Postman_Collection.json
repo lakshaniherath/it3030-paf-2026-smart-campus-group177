@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "Member 1: Resources Module",
+    "description": "Postman Collection for Facilities & Assets Catalogue",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Main Auditorium\",\n  \"type\": \"LECTURE_HALL\",\n  \"capacity\": 500,\n  \"location\": \"Building A\",\n  \"status\": \"ACTIVE\",\n  \"description\": \"Large auditorium for guest lectures.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/resources",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources"]
+        }
+      }
+    },
+    {
+      "name": "Get All Resources",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/resources?size=10&page=0",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources"],
+          "query": [
+            { "key": "size", "value": "10" },
+            { "key": "page", "value": "0" },
+            { "key": "type", "value": "LECTURE_HALL", "disabled": true },
+            { "key": "keyword", "value": "Auditorium", "disabled": true }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Resource By ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/resources/{{resource_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources", "{{resource_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Resource",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Auditorium\",\n  \"type\": \"LECTURE_HALL\",\n  \"capacity\": 550,\n  \"location\": \"Building A, Floor 1\",\n  \"status\": \"ACTIVE\",\n  \"description\": \"Newly renovated.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/resources/{{resource_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources", "{{resource_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Resource Status (Deactivate)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/resources/{{resource_id}}/status",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources", "{{resource_id}}", "status"]
+        }
+      }
+    },
+    {
+      "name": "Delete Resource",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:8080/api/resources/{{resource_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "resources", "{{resource_id}}"]
+        }
+      }
+    }
+  ]
+}
