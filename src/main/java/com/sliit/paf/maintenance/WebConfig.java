@@ -9,10 +9,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "http://localhost:5173")
-                .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")
+        registry.addMapping("/**") // සියලුම API endpoints සඳහා
+                // මෙතන allowedOrigins("*") පාවිච්චි කරන්න එපා, ඒ වෙනුවට මේක පාවිච්චි කරන්න:
+                .allowedOriginPatterns("*") 
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(true)
+                .maxAge(3600); // පැයක කාලයක් සඳහා CORS settings cache කිරීමට
     }
-} 
+}

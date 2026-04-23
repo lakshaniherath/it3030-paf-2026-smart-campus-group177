@@ -6,6 +6,6 @@ com\sliit\paf\model\ItemPost.class
 com\sliit\paf\controller\ItemController.class
 com\sliit\paf\config\CloudinaryConfig.class
 com\sliit\paf\service\FileStorageService.class
-com\sliit\paf\SmartCampusApplication.class
 com\sliit\paf\maintenance\Ticket.class
 com\sliit\paf\maintenance\WebConfig.class
+com\sliit\paf\maintenance\SmartCampusApplication.class

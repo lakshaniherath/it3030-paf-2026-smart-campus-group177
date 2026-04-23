@@ -1,74 +1,73 @@
 package com.sliit.paf.maintenance;
 
+import com.sliit.paf.maintenance.Ticket;
+import com.sliit.paf.maintenance.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.validation.Valid;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tickets")
-/**
- * CORS Fix: ඔයාගේ Frontend එක දුවන්නේ Port 3000 එකේ නිසා 
- * අපි මෙතනට 3000 සහ 5173 (Vite default) යන දෙකම ඇතුළත් කළා.
- */
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, 
-            allowedHeaders = "*", 
-            methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.OPTIONS})
+
 public class TicketController {
 
     @Autowired
     private TicketService ticketService;
 
-    // 1. GET - සියලුම ටිකට් ලබා ගැනීම (Dashboard එක සඳහා)
-    @GetMapping
-    public ResponseEntity<List<Ticket>> getAllTickets() {
-        return ResponseEntity.ok(ticketService.getAllTickets());
-    }
-
-    // 2. GET - එක ටිකට් එකක් ID එකෙන් ලබා ගැනීම (Detail Page එක සඳහා)
-    @GetMapping("/{id}")
-    public ResponseEntity<Ticket> getTicketById(@PathVariable String id) {
-        Ticket ticket = ticketService.getTicketById(id);
-        if (ticket == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ticket);
-    }
-
-    // 3. POST - අලුත් ටිකට් එකක් සෑදීම (Image Uploads සමඟ)
-    @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<Ticket> addTicket(@Valid
+    /**
+     * අලුත් ටිකට් එකක් සෑදීම
+     * @Valid භාවිත කරන්නේ නැත්තේ 'id' එක null වීම නිසා එන error එක නැති කිරීමටයි.
+     */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Ticket> createTicket(
             @ModelAttribute Ticket ticket, 
             @RequestParam(value = "files", required = false) MultipartFile[] files
     ) {
-        if (ticket.getStatus() == null || ticket.getStatus().isEmpty()) {
-            ticket.setStatus("OPEN");
+        try {
+            // Service එක හරහා ටිකට් එක සහ පින්තූර Save කිරීම
+            Ticket savedTicket = ticketService.createTicket(ticket, files);
+            return new ResponseEntity<>(savedTicket, HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        Ticket savedTicket = ticketService.createTicket(ticket, files);
-        return ResponseEntity.status(201).body(savedTicket);
     }
 
-    // 4. PATCH - ටිකට් එකක Status එක Update කිරීම
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Ticket> updateTicketStatus(@PathVariable String id, @RequestBody String status) {
-        // Axios හරහා එන දත්ත වල Quotes තිබේ නම් ඒවා ඉවත් කිරීම
-        String cleanStatus = status.replace("\"", "").trim();
-        
-        Ticket updated = ticketService.updateStatus(id, cleanStatus);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+    /**
+     * සියලුම ටිකට් ලබා ගැනීම
+     */
+    @GetMapping
+    public ResponseEntity<List<Ticket>> getAllTickets() {
+        return new ResponseEntity<>(ticketService.getAllTickets(), HttpStatus.OK);
     }
 
-    // 5. DELETE - ටිකට් එකක් මකා දැමීම
+    /**
+     * ටිකට් එකක් මකා දැමීම
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTicket(@PathVariable String id) {
-        ticketService.deleteTicket(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<HttpStatus> deleteTicket(@PathVariable String id) {
+        try {
+            ticketService.deleteTicket(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-} 
+
+    /**
+     * ටිකට් එකක Status එක වෙනස් කිරීම
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Ticket> updateStatus(@PathVariable String id, @RequestBody String status) {
+        try {
+            Ticket updatedTicket = ticketService.updateStatus(id, status);
+            return new ResponseEntity<>(updatedTicket, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+}

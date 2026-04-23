@@ -6,14 +6,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
-        <relativePath/> </parent>
+        <version>3.2.2</version> <relativePath/> 
+    </parent>
 
-    <groupId>com.sliit.paf</groupId>
-    <artifactId>smart-campus</artifactId>
+    <groupId>com.example</groupId>
+    <artifactId>smartcampus</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>smart-campus</name>
-    <description>Smart Campus Operations Hub</description>
+    <name>smartcampus</name>
+    <description>Smart Campus Ticketing System</description>
 
     <properties>
         <java.version>17</java.version>
@@ -33,11 +33,6 @@
         <dependency>
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http44</artifactId>
-            <version>1.36.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.cloudinary</groupId>
-            <artifactId>cloudinary-taglib</artifactId>
             <version>1.36.0</version>
         </dependency>
 
@@ -75,5 +70,4 @@
             </plugin>
         </plugins>
     </build>
-
-</project> 
+</project>

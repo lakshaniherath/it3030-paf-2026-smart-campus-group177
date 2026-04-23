@@ -1,18 +1,16 @@
 import axios from 'axios';
 
-// Vite proxy එක හරහා යන නිසා '/api/tickets' ලෙස භාවිතා කළ හැක
+// Backend URL එක (Vite Proxy එකක් නැතිනම් කෙලින්ම Localhost පාවිච්චි වේ)
 const API_URL = 'http://localhost:8080/api/tickets';
 
 /**
  * අලුත් ටිකට් එකක් සෑදීම (පින්තූර සහිතව)
- * @param {Object} ticketData - ටිකට් එකේ විස්තර
- * @param {Array} selectedImages - Browser එකෙන් තෝරාගත් File objects ලිස්ට් එක
  */
 export const createTicketJson = async (ticketData, selectedImages) => {
     const formData = new FormData();
     
-    // ටිකට් එකේ මූලික දත්ත FormData එකට එකතු කිරීම
-    formData.append('resourceId', ticketData.resourceId);
+    // වැදගත්: Frontend එකේ 'resource' අගය Backend එකේ බලාපොරොත්තු වන 'resourceId' නමට මෙතැනදී Map කෙරේ.
+    formData.append('resourceId', ticketData.resource); 
     formData.append('description', ticketData.description);
     formData.append('category', ticketData.category);
     formData.append('priority', ticketData.priority);
@@ -22,7 +20,6 @@ export const createTicketJson = async (ticketData, selectedImages) => {
     // පින්තූර තිබේ නම් ඒවා 'files' ලෙස FormData එකට එකතු කිරීම
     if (selectedImages && selectedImages.length > 0) {
         selectedImages.forEach((file) => {
-            // Web වලදී කෙලින්ම file object එක append කළ යුතුය
             formData.append('files', file); 
         });
     }
@@ -35,6 +32,7 @@ export const createTicketJson = async (ticketData, selectedImages) => {
         });
         return response.data;
     } catch (error) {
+        // Error එක හරියටම Console එකේ බලාගැනීමට මෙය උපකාරී වේ
         console.error("API Error (Create):", error.response?.data || error.message);
         throw error;
     }
@@ -67,7 +65,7 @@ export const deleteTicket = async (id) => {
 };
 
 /**
- * ටිකට් එකක Status එක (OPEN, IN_PROGRESS, etc.) වෙනස් කිරීම
+ * ටිකට් එකක Status එක වෙනස් කිරීම
  */
 export const updateTicketStatus = async (id, status) => {
     try {

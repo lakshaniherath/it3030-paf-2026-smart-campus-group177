@@ -1,16 +1,18 @@
 package com.sliit.paf.maintenance;
 
+import com.sliit.paf.maintenance.Ticket;
+import com.sliit.paf.maintenance.TicketRepository;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+
+// මෙන්න මේ Imports ටිකයි අඩුවෙලා තිබුණේ
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class TicketService {
@@ -19,53 +21,43 @@ public class TicketService {
     private TicketRepository ticketRepository;
 
     @Autowired
-    private Cloudinary cloudinary; // Cloudinary Config එකක් තියෙන්න ඕනේ
+    private Cloudinary cloudinary;
 
-    // 1. ටිකට් එකක් සෑදීම සහ පින්තූර Upload කිරීම
-    public Ticket createTicket(Ticket ticket, MultipartFile[] files) {
+    /**
+     * අලුත් ටිකට් එකක් සෑදීම සහ පින්තූර Cloudinary වෙත Upload කිරීම
+     */
+    public Ticket createTicket(Ticket ticket, MultipartFile[] files) throws IOException {
         List<String> imageUrls = new ArrayList<>();
 
+        // පින්තූර තිබේ නම් ඒවා Cloudinary වෙත යැවීම
         if (files != null && files.length > 0) {
             for (MultipartFile file : files) {
-                try {
-                    // Cloudinary එකට file එක upload කිරීම
+                if (!file.isEmpty()) {
+                    // Cloudinary uploader එක පාවිච්චි කර පින්තූරය යැවීම
                     Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-                    String url = uploadResult.get("url").toString();
-                    imageUrls.add(url);
-                    System.out.println("Uploaded Image URL: " + url); // Debugging සඳහා
-                } catch (IOException e) {
-                    System.err.println("Error uploading file: " + e.getMessage());
+                    imageUrls.add(uploadResult.get("url").toString());
                 }
             }
         }
 
-        ticket.setImageUrls(imageUrls); // Array එකට URLs ටික දානවා
+        // පින්තූර වල URL ටික Ticket object එකට එකතු කිරීම
+        ticket.setImageUrls(imageUrls);
+        ticket.setStatus("OPEN"); 
+        
         return ticketRepository.save(ticket);
     }
 
-    // 2. සියලුම ටිකට් ලබා ගැනීම
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
-    // 3. ID එකෙන් ටිකට් එකක් සෙවීම
-    public Ticket getTicketById(String id) {
-        return ticketRepository.findById(id).orElse(null);
-    }
-
-    // 4. Status එක Update කිරීම
-    public Ticket updateStatus(String id, String status) {
-        Optional<Ticket> optionalTicket = ticketRepository.findById(id);
-        if (optionalTicket.isPresent()) {
-            Ticket ticket = optionalTicket.get();
-            ticket.setStatus(status);
-            return ticketRepository.save(ticket);
-        }
-        return null;
-    }
-
-    // 5. ටිකට් එකක් මකා දැමීම
     public void deleteTicket(String id) {
         ticketRepository.deleteById(id);
     }
-} 
+
+    public Ticket updateStatus(String id, String status) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new RuntimeException("Ticket not found"));
+        ticket.setStatus(status.replace("\"", "")); 
+        return ticketRepository.save(ticket);
+    }
+}
