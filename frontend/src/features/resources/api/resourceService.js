@@ -21,10 +21,10 @@ apiClient.interceptors.response.use(
 export const resourceService = {
     getAllResources: (filters = {}) => {
         const params = {};
-        if (filters.keyword) params.keyword = filters.keyword;
+        if (filters.keyword && filters.keyword.trim()) params.keyword = filters.keyword.trim();
         if (filters.type) params.type = filters.type;
         if (filters.status) params.status = filters.status;
-        if (filters.minCapacity) params.minCapacity = filters.minCapacity;
+        if (filters.minCapacity && filters.minCapacity > 0) params.minCapacity = filters.minCapacity;
         if (filters.page !== undefined) params.page = filters.page;
         if (filters.size !== undefined) params.size = filters.size;
 

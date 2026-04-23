@@ -64,21 +64,51 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public Page<ResourceResponse> getAllResources(String keyword, ResourceType type, ResourceStatus status, int minCapacity, Pageable pageable) {
-        // Fallback to simple filtering if the complex $query fails. For standard Spring Data Mongo, we can use Example matchers or custom repos.
-        // For production, a MongoTemplate Criteria query in a CustomRepository is safer, but we rely on repository methods here.
-        // Doing in-memory simplified search for the assignment purpose if needed, but assuming repo handles it or we map it:
-        
         Page<Resource> resources;
-        if (keyword != null && !keyword.isEmpty()) {
-            if (type != null && status != null) {
+        
+        boolean hasKeyword = keyword != null && !keyword.isEmpty();
+        boolean hasType = type != null;
+        boolean hasStatus = status != null;
+        boolean hasCapacity = minCapacity > 0;
+        
+        if (hasKeyword) {
+            // Search with keyword combined with other filters
+            if (hasType && hasStatus && hasCapacity) {
                 resources = resourceRepository.searchByKeywordAndFilters(keyword, type, status, minCapacity, pageable);
+            } else if (hasType && hasStatus) {
+                resources = resourceRepository.searchByKeywordAndFilters(keyword, type, status, 0, pageable);
+            } else if (hasType && hasCapacity) {
+                resources = resourceRepository.searchByKeywordTypeCapacity(keyword, type, minCapacity, pageable);
+            } else if (hasStatus && hasCapacity) {
+                resources = resourceRepository.searchByKeywordStatusCapacity(keyword, status, minCapacity, pageable);
+            } else if (hasType) {
+                resources = resourceRepository.searchByKeywordAndType(keyword, type, pageable);
+            } else if (hasStatus) {
+                resources = resourceRepository.searchByKeywordAndStatus(keyword, status, pageable);
+            } else if (hasCapacity) {
+                resources = resourceRepository.searchByKeywordAndCapacity(keyword, minCapacity, pageable);
             } else {
                 resources = resourceRepository.searchByKeyword(keyword, pageable);
             }
-        } else if (type != null && status != null) {
-            resources = resourceRepository.findByTypeAndStatusAndCapacityGreaterThanEqual(type, status, minCapacity, pageable);
         } else {
-            resources = resourceRepository.findAll(pageable); // Can be improved with dynamic Querydsl or MongoTemplate
+            // No keyword - filter by type, status, capacity
+            if (hasType && hasStatus && hasCapacity) {
+                resources = resourceRepository.findByTypeStatusCapacity(type, status, minCapacity, pageable);
+            } else if (hasType && hasStatus) {
+                resources = resourceRepository.findByTypeAndStatus(type, status, pageable);
+            } else if (hasType && hasCapacity) {
+                resources = resourceRepository.findByTypeAndCapacityGreaterThanEqual(type, minCapacity, pageable);
+            } else if (hasStatus && hasCapacity) {
+                resources = resourceRepository.findByStatusAndCapacityGreaterThanEqual(status, minCapacity, pageable);
+            } else if (hasType) {
+                resources = resourceRepository.findByType(type, pageable);
+            } else if (hasStatus) {
+                resources = resourceRepository.findByStatus(status, pageable);
+            } else if (hasCapacity) {
+                resources = resourceRepository.findByCapacityGreaterThanEqual(minCapacity, pageable);
+            } else {
+                resources = resourceRepository.findAll(pageable);
+            }
         }
         
         return resources.map(resourceMapper::toResponse);
