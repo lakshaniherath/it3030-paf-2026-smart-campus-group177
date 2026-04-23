@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -38,7 +41,7 @@ public class TicketController {
 
     // 3. POST - අලුත් ටිකට් එකක් සෑදීම (Image Uploads සමඟ)
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<Ticket> addTicket(
+    public ResponseEntity<Ticket> addTicket(@Valid
             @ModelAttribute Ticket ticket, 
             @RequestParam(value = "files", required = false) MultipartFile[] files
     ) {

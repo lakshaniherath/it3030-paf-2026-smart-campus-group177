@@ -1,12 +1,13 @@
 package com.sliit.paf.maintenance;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @Document(collection = "tickets")
 public class Ticket {
-    @Id
+    @NotBlank (message = "Description is required")
     private String id;
     private String resourceId;
     private String description;
