@@ -2,17 +2,12 @@ package com.example.demo.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-<<<<<<< HEAD
 import java.time.LocalDateTime;
-=======
-import java.util.Date;
->>>>>>> member-01
 
 @Document(collection = "notifications")
 public class Notification {
     @Id
     private String id;
-<<<<<<< HEAD
     private String userEmail;  // User receiving the notification
     private String type;  // BOOKING, TICKET, COMMENT, SYSTEM
     private String title;  // Notification title
@@ -33,17 +28,10 @@ public class Notification {
         this.read = false;
         this.createdAt = LocalDateTime.now();
     }
-=======
-    private String recipientEmail;
-    private String message;
-    private boolean isRead = false;
-    private Date timestamp = new Date();
->>>>>>> member-01
 
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-<<<<<<< HEAD
 
     public String getUserEmail() { return userEmail; }
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
@@ -77,12 +65,4 @@ public class Notification {
     // Legacy compatibility methods
     public String getRecipientEmail() { return userEmail; }
     public void setRecipientEmail(String email) { this.userEmail = email; }
-=======
-    public String getRecipientEmail() { return recipientEmail; }
-    public void setRecipientEmail(String email) { this.recipientEmail = email; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-    public boolean isRead() { return isRead; }
-    public void setRead(boolean read) { isRead = read; }
->>>>>>> member-01
 }

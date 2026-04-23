@@ -3,46 +3,32 @@ package com.example.demo.service;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-<<<<<<< HEAD
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Date;
-=======
-import org.springframework.stereotype.Service;
-import java.util.Optional;
->>>>>>> member-01
 
 @Service
 public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-<<<<<<< HEAD
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-=======
->>>>>>> member-01
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-<<<<<<< HEAD
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
-
-=======
->>>>>>> member-01
     public void updateUserRole(String email, String role) {
         userRepository.findByEmail(email).ifPresent(user -> {
             user.setRole(role);
             userRepository.save(user);
         });
     }
-<<<<<<< HEAD
 
     public void deleteUser(String email) throws Exception {
         Optional<User> user = userRepository.findByEmail(email);
@@ -82,6 +68,4 @@ public class UserService {
         userRepository.save(user);
         return true;
     }
-=======
->>>>>>> member-01
 }

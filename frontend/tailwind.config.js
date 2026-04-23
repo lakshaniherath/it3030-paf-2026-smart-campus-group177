@@ -2,7 +2,7 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-<<<<<<< HEAD
+    "./src/features/resources/pages/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
@@ -25,15 +25,6 @@ module.exports = {
           },
         },
       },
-    },
-  },
-  plugins: [],
-}
-=======
-    "./src/features/resources/pages/**/*.{js,jsx,ts,tsx}", // Added path for resource pages
-  ],
-  theme: {
-    extend: {
       colors: {
         primary: {
           DEFAULT: '#2563EB',
@@ -67,4 +58,3 @@ module.exports = {
   },
   plugins: [],
 }
->>>>>>> member-01

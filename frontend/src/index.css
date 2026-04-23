@@ -1,19 +1,17 @@
-<<<<<<< HEAD
 /* src/index.css */
-=======
->>>>>>> member-01
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< HEAD
 html {
   scroll-behavior: smooth;
 }
 
-body {
-  @apply bg-blue-50 text-slate-800 antialiased;
-  font-family: Poppins, Manrope, "Segoe UI", sans-serif;
+@layer base {
+  body {
+    @apply bg-background text-text-primary antialiased;
+    font-family: Poppins, Manrope, "Segoe UI", sans-serif;
+  }
 }
 
 @layer utilities {
@@ -56,10 +54,3 @@ body {
     }
   }
 }
-=======
-@layer base {
-  body {
-    @apply bg-background text-text-primary antialiased;
-  }
-}
->>>>>>> member-01

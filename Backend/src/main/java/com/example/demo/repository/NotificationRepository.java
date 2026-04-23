@@ -6,11 +6,8 @@ import java.util.List;
 
 public interface NotificationRepository extends MongoRepository<Notification, String> {
     List<Notification> findByRecipientEmail(String email);
-<<<<<<< HEAD
     List<Notification> findByUserEmail(String userEmail);
     List<Notification> findByUserEmailAndRead(String userEmail, boolean read);
     List<Notification> findByUserEmailAndType(String userEmail, String type);
     List<Notification> findByRelatedId(String relatedId);
-=======
->>>>>>> member-01
 }

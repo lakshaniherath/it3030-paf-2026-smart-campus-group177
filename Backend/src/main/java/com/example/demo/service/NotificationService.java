@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-<<<<<<< HEAD
 import com.example.demo.model.Notification;
 import com.example.demo.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,9 +150,3 @@ public class NotificationService {
         return createNotification(userEmail, "COMMENT", title, message, ticketId);
     }
 }
-
-=======
-public class NotificationService {
-    
-}
->>>>>>> member-01

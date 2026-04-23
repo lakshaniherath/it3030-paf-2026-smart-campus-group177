@@ -4,23 +4,15 @@
   "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
-<<<<<<< HEAD
     "@tailwindcss/postcss": "^4.2.2",
-=======
->>>>>>> member-01
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
-<<<<<<< HEAD
     "axios": "^1.14.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-icons": "^5.6.0",
-=======
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
->>>>>>> member-01
     "react-router-dom": "^7.14.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
@@ -50,13 +42,9 @@
     ]
   },
   "devDependencies": {
-<<<<<<< HEAD
     "autoprefixer": "^10.4.27",
+    "lucide-react": "^1.7.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.1"
-=======
-    "axios": "^1.14.0",
-    "lucide-react": "^1.7.0"
->>>>>>> member-01
   }
 }

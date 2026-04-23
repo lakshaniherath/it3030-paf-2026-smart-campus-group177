@@ -16,16 +16,11 @@ public interface ResourceRepository extends MongoRepository<Resource, String> {
 
     Optional<Resource> findByCode(String code);
 
-    // Filter query that supports optional fields using regex for keyword searches
-    @Query("{ " +
-           "  $and: [ " +
-           "    { $or: [ { 'name': { $regex: ?0, $options: 'i' } }, { 'code': { $regex: ?0, $options: 'i' } }, { 'location': { $regex: ?0, $options: 'i' } } ] }, " +
-           "    { '?1': { $ne: null } ? 'type': ?1 : { $exists: true } }, " +
-           "    { '?2': { $ne: null } ? 'status': ?2 : { $exists: true } }, " +
-           "    { 'capacity': { $gte: ?3 } }" +
-           "  ]" +
-           "}")
-    Page<Resource> searchResources(String keyword, ResourceType type, ResourceStatus status, int minCapacity, Pageable pageable);
+    @Query("{ $or: [ { 'name': { $regex: ?0, $options: 'i' } }, { 'code': { $regex: ?0, $options: 'i' } }, { 'location': { $regex: ?0, $options: 'i' } } ] }")
+    Page<Resource> searchByKeyword(String keyword, Pageable pageable);
+
+    @Query("{ $and: [ { $or: [ { 'name': { $regex: ?0, $options: 'i' } }, { 'code': { $regex: ?0, $options: 'i' } }, { 'location': { $regex: ?0, $options: 'i' } } ] }, { 'type': ?1 }, { 'status': ?2 }, { 'capacity': { $gte: ?3 } } ] }")
+    Page<Resource> searchByKeywordAndFilters(String keyword, ResourceType type, ResourceStatus status, int minCapacity, Pageable pageable);
     
     // A simpler query if regex gets too complex for MongoRepository
     Page<Resource> findByTypeAndStatusAndCapacityGreaterThanEqual(ResourceType type, ResourceStatus status, int capacity, Pageable pageable);

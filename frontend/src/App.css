@@ -1,11 +1,7 @@
 .App {
-<<<<<<< HEAD
   min-height: 100vh;
   background: linear-gradient(180deg, #eff6ff 0%, #ffffff 45%, #ecfdf5 100%);
   color: #0f172a;
-=======
-  text-align: center;
->>>>>>> member-01
 }
 
 .App-logo {
@@ -20,30 +16,18 @@
 }
 
 .App-header {
-<<<<<<< HEAD
   background: linear-gradient(180deg, #eff6ff 0%, #ffffff 45%, #ecfdf5 100%);
-=======
-  background-color: #282c34;
->>>>>>> member-01
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-<<<<<<< HEAD
   color: #0f172a;
 }
 
 .App-link {
   color: #67e8f9;
-=======
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
->>>>>>> member-01
 }
 
 @keyframes App-logo-spin {

@@ -70,7 +70,11 @@ public class ResourceServiceImpl implements ResourceService {
         
         Page<Resource> resources;
         if (keyword != null && !keyword.isEmpty()) {
-            resources = resourceRepository.searchResources(keyword != null ? keyword : "", type, status, minCapacity, pageable);
+            if (type != null && status != null) {
+                resources = resourceRepository.searchByKeywordAndFilters(keyword, type, status, minCapacity, pageable);
+            } else {
+                resources = resourceRepository.searchByKeyword(keyword, pageable);
+            }
         } else if (type != null && status != null) {
             resources = resourceRepository.findByTypeAndStatusAndCapacityGreaterThanEqual(type, status, minCapacity, pageable);
         } else {

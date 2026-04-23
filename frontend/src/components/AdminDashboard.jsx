@@ -23,6 +23,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { apiFetch, getStoredUser } from '../utils/api';
+import AdminResourceManagementPage from '../features/resources/pages/AdminResourceManagementPage';
 
 const ROLE_OPTIONS = ['STUDENT', 'LECTURER', 'TECHNICIAN', 'ADMIN'];
 const AUDIT_LOG_STORAGE_KEY = 'adminAuditLogs';
@@ -560,17 +561,9 @@ const AdminDashboard = () => {
         )}
 
         {activeSection === 'resources' && (
-          <IntegrationPanel
-            title="Member 1 - Resource and Assets"
-            description="Asset Inventory, Add/Edit/Delete resources, and availability toggle will connect here."
-            endpointGuide={[
-              'GET /api/resources',
-              'POST /api/resources',
-              'PUT /api/resources/{id}',
-              'DELETE /api/resources/{id}',
-              'PATCH /api/resources/{id}/status',
-            ]}
-          />
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <AdminResourceManagementPage />
+          </div>
         )}
 
         {activeSection === 'bookings' && (

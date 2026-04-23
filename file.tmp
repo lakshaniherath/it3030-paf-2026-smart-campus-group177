@@ -97,7 +97,7 @@ SecurityConfig.java
 ├─ OAuth2: Google login enabled
 ├─ PasswordEncoder: BCryptPasswordEncoder
 ├─ Method Security: @EnableMethodSecurity(prePostEnabled = true)
-└─ Protected Endpoints: All except /login/**, /oauth2/**, /api/auth/**, /api/chatbot/**
+└─ Protected Endpoints: All except /login/**, /oauth2/**, /api/auth/**
 
 AdminController.java
 ├─ All methods: @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
@@ -277,7 +277,7 @@ Solution:
 ```properties
 spring.application.name=DemoApplication
 spring.data.mongodb.uri=mongodb+srv://paf:paf123@cluster0.0vfmwfr.mongodb.net/smart_campus_db?retryWrites=true&w=majority
-spring.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
+spring.oauth2.client.registration.google.client-id=71813655033-f7ecaeickeklunjpujusunn621b8dv4e.apps.googleusercontent.com
 spring.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
 ```
 
