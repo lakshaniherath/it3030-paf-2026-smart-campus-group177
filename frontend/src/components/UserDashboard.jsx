@@ -9,6 +9,7 @@ import {
   FiRefreshCw,
   FiTool,
   FiUser,
+  FiGrid,
 } from 'react-icons/fi';
 import { apiFetch, getStoredUser } from '../utils/api';
 
@@ -159,14 +160,14 @@ const UserDashboard = () => {
               { id: 'OVERVIEW', label: 'Overview', icon: <FiHome /> },
               { id: 'NOTIFICATIONS', label: 'Notification Bell', icon: <FiBell /> },
               { id: 'PROFILE', label: 'User Profile', icon: <FiUser /> },
-              { id: 'BOOKING_SUMMARY_M12', label: 'Booking Summary (M1/M2)', icon: <FiCalendar /> },
-              { id: 'NEW_BOOKING_M2', label: 'New Booking Request (M2)', icon: <FiCalendar /> },
-              { id: 'INCIDENT_REPORT_M3', label: 'Incident Reporting (M3)', icon: <FiTool /> },
+              { id: 'RESOURCES_M1', label: 'Browse Resources (M1)', icon: <FiGrid /> },
+              { id: 'BOOKINGS_M2', label: 'My Bookings (M2)', icon: <FiCalendar /> },
+              { id: 'INCIDENT_REPORT_M3', label: 'Report Incident (M3)', icon: <FiTool /> },
               { id: 'MY_TICKETS_M3', label: 'My Tickets (M3)', icon: <FiClock /> },
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => item.id === 'RESOURCES_M1' ? navigate('/resources') : item.id === 'BOOKINGS_M2' ? navigate('/bookings') : item.id === 'INCIDENT_REPORT_M3' ? navigate('/tickets/create') : item.id === 'MY_TICKETS_M3' ? navigate('/tickets') : setActiveSection(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition ${
                   activeSection === item.id
                     ? 'bg-emerald-300 text-slate-900 border-emerald-200 font-semibold'
@@ -226,39 +227,6 @@ const UserDashboard = () => {
             </section>
           )}
 
-          {activeSection === 'BOOKING_SUMMARY_M12' && (
-            <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold mb-3">Booking Summary (Member 1/2 Integration)</h2>
-                <p className="text-sm text-slate-600 mb-4">Member 1/2 module data appears here via BOOKING notifications.</p>
-                <div className="space-y-3">
-                  {bookingAlerts.map((entry) => (
-                    <NotificationItem key={entry.id} entry={entry} />
-                  ))}
-                  {bookingAlerts.length === 0 && <p className="text-sm text-slate-600">No booking alerts received yet.</p>}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold mb-3">Integration Status</h2>
-                <p className="text-sm text-slate-700 leading-6">
-                  This panel only displays booking workflow outputs from Member 1/2 APIs. Booking create/edit/cancel actions are handled
-                  in Member 2 module and integrated here through alerts and status events.
-                </p>
-              </div>
-            </section>
-          )}
-
-          {activeSection === 'NEW_BOOKING_M2' && (
-            <section className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold mb-3">New Booking Request (Member 2 Integration)</h2>
-              <p className="text-sm text-slate-700 leading-6">
-                Booking request form implementation belongs to Member 2 module. This dashboard integrates their outputs by reading
-                BOOKING status notifications after request submission, approval, rejection, or cancellation.
-              </p>
-            </section>
-          )}
-
           {activeSection === 'INCIDENT_REPORT_M3' && (
             <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
@@ -299,34 +267,104 @@ const UserDashboard = () => {
           {activeSection === 'NOTIFICATIONS' && (
             <section className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-semibold">Notification Bell Alerts</h2>
-                <button
-                  onClick={markAllAsRead}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-emerald-300 text-slate-900 font-semibold"
-                >
-                  Mark all as read
-                </button>
+                <div>
+                  <h2 className="text-xl font-semibold">Notification Bell Alerts</h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {notifications.length} total notification{notifications.length !== 1 ? 's' : ''} 
+                    {notificationStats.unread > 0 && ` • ${notificationStats.unread} unread`}
+                  </p>
+                </div>
+                {notifications.length > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="px-4 py-2 rounded-xl text-sm bg-cyan-400 text-slate-950 font-semibold hover:bg-cyan-300 transition"
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3">
-                {notifications.map((entry) => (
-                  <div key={entry.id} className="rounded-xl p-4 border border-blue-100 bg-blue-50/60">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold">{entry.title}</p>
-                      {!entry.read && (
-                        <button
-                          onClick={() => markAsRead(entry.id)}
-                          className="px-3 py-1 text-xs rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200"
-                        >
-                          Mark read
-                        </button>
-                      )}
+                {notifications.map((entry) => {
+                  const getIcon = (type) => {
+                    switch (type) {
+                      case 'BOOKING': return '📅';
+                      case 'TICKET': return '🔧';
+                      case 'COMMENT': return '💬';
+                      default: return '📢';
+                    }
+                  };
+                  
+                  const formatTime = (date) => {
+                    if (!date) return 'Date unavailable';
+                    const now = new Date();
+                    const notifDate = new Date(date);
+                    const diffMs = now - notifDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    const diffDays = Math.floor(diffMs / 86400000);
+
+                    if (diffMins < 1) return 'Just now';
+                    if (diffMins < 60) return `${diffMins}m ago`;
+                    if (diffHours < 24) return `${diffHours}h ago`;
+                    if (diffDays < 7) return `${diffDays}d ago`;
+                    return notifDate.toLocaleDateString();
+                  };
+                  
+                  return (
+                    <div 
+                      key={entry.id} 
+                      className={`rounded-xl p-4 border transition ${
+                        entry.read 
+                          ? 'border-blue-100 bg-white' 
+                          : 'border-cyan-200 bg-cyan-50/50 border-l-4 border-l-cyan-400'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-2xl flex-shrink-0 mt-0.5">
+                          {getIcon(entry.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-800">{entry.title}</p>
+                              <p className="text-sm text-slate-600 mt-1">{entry.message}</p>
+                            </div>
+                            {!entry.read && (
+                              <button
+                                onClick={() => markAsRead(entry.id)}
+                                className="px-3 py-1 text-xs rounded-lg bg-cyan-400 text-slate-950 font-semibold hover:bg-cyan-300 transition flex-shrink-0"
+                              >
+                                Mark read
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                              {entry.type || 'SYSTEM'}
+                            </span>
+                            <span>{formatTime(entry.createdAt)}</span>
+                            {!entry.read && (
+                              <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                                Unread
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-700 mt-2">{entry.message}</p>
-                    <p className="text-xs text-slate-500 mt-2">{entry.type || 'SYSTEM'} | {entry.createdAt || 'Date unavailable'}</p>
+                  );
+                })}
+                {notifications.length === 0 && (
+                  <div className="text-center py-12">
+                    <FiBell className="mx-auto text-slate-300 mb-3" size={48} />
+                    <p className="text-slate-600 font-semibold">No alerts currently.</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      You'll receive notifications here when bookings are approved/rejected or ticket statuses change.
+                    </p>
                   </div>
-                ))}
-                {notifications.length === 0 && <p className="text-sm text-slate-600">No alerts currently.</p>}
+                )}
               </div>
             </section>
           )}

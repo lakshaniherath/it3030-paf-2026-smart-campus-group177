@@ -1,45 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllTickets, deleteTicket, updateTicketStatus } from '../api/ticketApi';
+import {
+    FiPlusCircle, FiRefreshCw, FiSearch, FiTrash2,
+    FiEye, FiTool, FiAlertCircle, FiCheckCircle,
+    FiClock, FiArrowLeft, FiHome, FiCalendar, FiGrid, FiLogOut, FiBarChart2,
+} from 'react-icons/fi';
+
+const NAV = [
+    { label: 'All Tickets',     icon: <FiTool />,     path: '/tickets',        active: true },
+    { label: 'Analytics',       icon: <FiBarChart2 />, path: '/tickets/analytics' },
+    { label: 'Report Incident', icon: <FiPlusCircle />, path: '/tickets/create' },
+    { label: 'My Bookings',     icon: <FiCalendar />, path: '/bookings' },
+    { label: 'Resources',       icon: <FiGrid />,     path: '/resources' },
+    { label: 'Dashboard',       icon: <FiHome />,     path: '/dashboard' },
+];
+
+const STATUS_STYLES = {
+    OPEN:        'bg-blue-100 text-blue-700 border-blue-200',
+    IN_PROGRESS: 'bg-amber-100 text-amber-700 border-amber-200',
+    RESOLVED:    'bg-emerald-100 text-emerald-700 border-emerald-200',
+    CLOSED:      'bg-slate-100 text-slate-600 border-slate-200',
+    REJECTED:    'bg-rose-100 text-rose-700 border-rose-200',
+};
+
+const PRIORITY_STYLES = {
+    LOW:    'bg-slate-100 text-slate-600 border-slate-200',
+    MEDIUM: 'bg-amber-100 text-amber-700 border-amber-200',
+    HIGH:   'bg-rose-100 text-rose-700 border-rose-200',
+};
 
 const TicketListPage = () => {
+    const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     
-    const navigate = useNavigate();
+    // Get user from localStorage (consistent with rest of the app)
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Check if user has permission to update status (only ADMIN or TECHNICIAN)
+    const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
 
     const fetchTickets = async () => {
         try {
             setLoading(true);
+            setError(null);
             const data = await getAllTickets();
-            const rawData = Array.isArray(data) ? data : (data.data || []);
-            const normalizedData = rawData.map(t => ({
-                ...t,
-                id: t.id || t._id 
-            }));
-            setTickets(normalizedData);
-        } catch (err) {
-            console.error("Failed to fetch tickets:", err);
-            setError("Could not load data. Please try again later.");
+            const raw = Array.isArray(data) ? data : (data?.data || []);
+            setTickets(raw.map(t => ({ ...t, id: t.id || t._id })));
+        } catch {
+            setError('Could not load tickets. Please check your connection.');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchTickets();
-    }, []);
+    useEffect(() => { fetchTickets(); }, []);
 
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this ticket?")) {
-            try {
-                await deleteTicket(id);
-                setTickets(tickets.filter(t => t.id !== id));
-            } catch (err) {
-                alert("Failed to delete the ticket.");
-            }
+        if (!window.confirm('Delete this ticket?')) return;
+        try {
+            await deleteTicket(id);
+            setTickets(tickets.filter(t => t.id !== id));
+        } catch {
+            setError('Failed to delete ticket.');
         }
     };
 
@@ -47,176 +73,215 @@ const TicketListPage = () => {
         try {
             await updateTicketStatus(id, newStatus);
             fetchTickets();
-        } catch (err) {
-            alert("Failed to update status.");
+        } catch {
+            setError('Failed to update status.');
         }
     };
 
-    const filteredTickets = tickets?.filter(ticket => 
-        ticket.resourceId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = tickets.filter(t =>
+        t.resourceId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Stats ගණනය කිරීම
-    const totalTickets = tickets.length;
-    const openTickets = tickets.filter(t => t.status === 'OPEN').length;
-    const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED').length;
-    const inProgressTickets = tickets.filter(t => t.status === 'IN_PROGRESS').length;
-
-    if (loading) return <div className="flex justify-center items-center h-screen text-slate-500 font-bold uppercase tracking-widest">Loading Smart Campus...</div>;
+    const stats = {
+        total: tickets.length,
+        open: tickets.filter(t => t.status === 'OPEN').length,
+        inProgress: tickets.filter(t => t.status === 'IN_PROGRESS').length,
+        resolved: tickets.filter(t => t.status === 'RESOLVED').length,
+    };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] p-6 lg:p-10 text-left font-sans">
-            <div className="max-w-7xl mx-auto">
-                
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-cyan-50 text-slate-800 flex">
+            {/* Sidebar */}
+            <aside className="w-64 bg-gradient-to-b from-blue-800 via-blue-700 to-cyan-700 px-4 py-6 hidden md:flex flex-col flex-shrink-0">
+                <div className="flex items-center gap-3 px-2 mb-8">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400 text-slate-950 font-black text-sm shadow flex-shrink-0">SC</div>
                     <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Maintenance Dashboard</h1>
-                        <p className="text-slate-500 font-medium mt-1">Real-time status of campus maintenance requests</p>
+                        <p className="text-white font-bold text-sm leading-tight">Maintenance</p>
                     </div>
-                    <button onClick={fetchTickets} className="bg-white border-2 border-slate-100 px-6 py-3 rounded-2xl shadow-sm hover:bg-slate-50 text-slate-700 font-bold transition-all active:scale-95">
-                        🔄 Refresh Data
-                    </button>
+                </div>
+                <nav className="space-y-2 flex-1">
+                    {NAV.map(item => (
+                        <button key={item.path} onClick={() => navigate(item.path)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition text-sm ${
+                                item.active
+                                    ? 'bg-cyan-400 text-slate-950 border-cyan-300 font-semibold'
+                                    : 'bg-white/95 text-blue-900 border-blue-100 hover:border-cyan-300'
+                            }`}>
+                            {item.icon} {item.label}
+                        </button>
+                    ))}
+                </nav>
+                <button onClick={() => navigate('/dashboard')}
+                    className="mt-4 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-blue-100 hover:bg-white/20 transition text-sm">
+                    <FiLogOut /> Back to Dashboard
+                </button>
+            </aside>
+
+            {/* Main */}
+            <div className="flex-1 flex flex-col min-w-0">
+            {/* Header */}
+            <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+                <div className="px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => navigate('/dashboard')}
+                            className="flex items-center justify-center h-9 w-9 rounded-xl border border-blue-100 bg-blue-50 text-slate-600 hover:bg-blue-100 hover:text-blue-700 transition">
+                            <FiArrowLeft size={16} />
+                        </button>
+                        <div>
+                            <h1 className="text-xl font-bold text-blue-900">Maintenance Tickets</h1>
+                            <p className="text-xs text-slate-500">Track and manage campus incident reports</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => navigate('/tickets/analytics')}
+                                className="px-3 py-2 rounded-xl bg-blue-500 text-white font-semibold hover:bg-blue-600 transition flex items-center gap-2 text-sm"
+                            >
+                                <FiBarChart2 size={14} /> Analytics
+                            </button>
+                        )}
+                        <button onClick={fetchTickets}
+                            className="px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition flex items-center gap-2 text-slate-700 text-sm">
+                            <FiRefreshCw size={14} /> Refresh
+                        </button>
+                        <button onClick={() => navigate('/tickets/create')}
+                            className="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-semibold shadow-lg shadow-cyan-500/20 hover:bg-cyan-300 transition flex items-center gap-2 text-sm">
+                            <FiPlusCircle size={14} /> New Ticket
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div className="px-4 md:px-8 py-8 space-y-6">
+                {error && (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800 text-sm">{error}</div>
+                )}
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { label: 'Total', value: stats.total, icon: <FiTool className="text-blue-500" />, bg: 'bg-blue-50' },
+                        { label: 'Open', value: stats.open, icon: <FiAlertCircle className="text-blue-600" />, bg: 'bg-blue-50' },
+                        { label: 'In Progress', value: stats.inProgress, icon: <FiClock className="text-amber-500" />, bg: 'bg-amber-50' },
+                        { label: 'Resolved', value: stats.resolved, icon: <FiCheckCircle className="text-emerald-500" />, bg: 'bg-emerald-50' },
+                    ].map(s => (
+                        <div key={s.label} className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-xl ${s.bg} flex items-center justify-center flex-shrink-0`}>
+                                {s.icon}
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500 font-medium">{s.label}</p>
+                                <p className="text-2xl font-bold text-slate-900">{s.value}</p>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
-                {/* --- New Stats Cards Section --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total</p>
-                        <p className="text-4xl font-black text-slate-900">{totalTickets}</p>
+                {/* Search */}
+                <div className="rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
+                    <div className="relative">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                        <input type="text" placeholder="Search by location or description..."
+                            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-blue-100 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                     </div>
-                    <div className="bg-white p-6 rounded-[32px] border-l-8 border-l-indigo-500 shadow-sm border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Open</p>
-                        <p className="text-4xl font-black text-indigo-600">{openTickets}</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-[32px] border-l-8 border-l-amber-500 shadow-sm border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">In Progress</p>
-                        <p className="text-4xl font-black text-amber-600">{inProgressTickets}</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-[32px] border-l-8 border-l-emerald-500 shadow-sm border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Resolved</p>
-                        <p className="text-4xl font-black text-emerald-600">{resolvedTickets}</p>
-                    </div>
-                </div>
-                
-                {/* Search Bar */}
-                <div className="bg-white p-2 rounded-[24px] shadow-sm border border-slate-100 mb-10">
-                    <input
-                        type="text"
-                        placeholder="Quick search by location or issue..."
-                        className="w-full bg-slate-50 border-none p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-medium transition-all"
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
                 </div>
 
-                {/* Tickets Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {filteredTickets.length > 0 ? (
-                        filteredTickets.map((ticket) => (
-                            <div key={ticket.id} className="bg-white rounded-[40px] shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col">
-                                <div className="p-8 pb-10">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white ${
-                                            ticket.status === 'REJECTED' ? 'bg-rose-500' : 
-                                            ticket.status === 'RESOLVED' ? 'bg-emerald-500' : 'bg-indigo-600'
-                                        }`}>
+                {/* Ticket list */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm animate-pulse space-y-3">
+                                <div className="h-4 w-20 bg-blue-50 rounded-lg" />
+                                <div className="h-5 w-3/4 bg-blue-50 rounded-lg" />
+                                <div className="h-3.5 w-1/2 bg-blue-50 rounded-lg" />
+                            </div>
+                        ))}
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="rounded-2xl border border-blue-100 bg-white p-16 text-center shadow-sm">
+                        <FiTool className="mx-auto mb-3 text-slate-300" size={36} />
+                        <p className="font-semibold text-slate-700">No tickets found</p>
+                        <p className="text-slate-400 text-sm mt-1">Try adjusting your search or create a new ticket.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {filtered.map(ticket => (
+                            <div key={ticket.id} className="rounded-2xl border border-blue-100 bg-white shadow-sm hover:shadow-md transition flex flex-col">
+                                <div className="p-5 flex-1 space-y-3">
+                                    {/* Status + Priority */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${STATUS_STYLES[ticket.status] || STATUS_STYLES.OPEN}`}>
                                             {ticket.status}
-                                        </div>
-                                        <span className="text-slate-300 text-[11px] font-black uppercase tracking-tighter">#{String(ticket.id).slice(-5)}</span>
+                                        </span>
+                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${PRIORITY_STYLES[ticket.priority] || PRIORITY_STYLES.MEDIUM}`}>
+                                            {ticket.priority}
+                                        </span>
+                                        <span className="ml-auto text-xs font-mono text-slate-400">#{String(ticket.id).slice(-5)}</span>
                                     </div>
 
-                                    <h3 
-                                        className="text-slate-900 font-black text-2xl mb-4 leading-tight"
-                                        style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '3.5rem' }}
-                                    >
-                                        {ticket.description}
-                                    </h3>
-                                    
-                                    <div className="space-y-4 mb-8">
-                                        <div className="flex items-center gap-4 text-slate-600">
-                                            <span className="w-10 h-10 flex items-center justify-center bg-rose-50 rounded-2xl text-rose-500 text-lg">📍</span>
-                                            <div>
-                                                <p className="text-[10px] uppercase font-black text-slate-400 leading-none mb-1">Resource Location</p>
-                                                <p className="font-bold text-slate-800">{ticket.resourceId}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4 text-slate-600">
-                                            <span className="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-2xl text-slate-500 text-lg">👤</span>
-                                            <div>
-                                                <p className="text-[10px] uppercase font-black text-slate-400 leading-none mb-1">Reported By</p>
-                                                <p className="font-bold text-slate-800">{ticket.reportedBy || 'Staff Member'}</p>
-                                            </div>
-                                        </div>
+                                    {/* Description */}
+                                    <p className="font-semibold text-slate-800 line-clamp-2 text-sm">{ticket.description}</p>
+
+                                    {/* Meta */}
+                                    <div className="text-xs text-slate-500 space-y-1">
+                                        <p>📍 {ticket.resourceId}</p>
+                                        <p>👤 {ticket.reportedBy || 'Unknown'}</p>
+                                        {ticket.category && <p>🏷 {ticket.category}</p>}
                                     </div>
 
-                                    {/* Evidence Gallery */}
-                                    {(ticket.imageUrls && ticket.imageUrls.length > 0) ? (
-                                        <div className="mb-8">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Evidence Gallery</p>
-                                            <div className="flex flex-wrap gap-4">
-                                                {ticket.imageUrls.map((url, index) => (
-                                                    <div key={index} className="relative group">
-                                                        <img 
-                                                            src={url.replace('/upload/', '/upload/c_fill,g_auto,h_400,w_400,q_auto,f_auto/')} 
-                                                            alt="incident" 
-                                                            className="w-24 h-24 object-cover rounded-[20px] border-4 border-white shadow-md group-hover:scale-105 transition-transform cursor-zoom-in"
-                                                            onClick={() => window.open(url, '_blank')}
-                                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/300?text=No+Image'; }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="mb-8 p-6 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-100 text-center">
-                                            <p className="text-[10px] text-slate-400 font-black uppercase">No visual evidence</p>
+                                    {/* Images */}
+                                    {ticket.imageUrls?.length > 0 && (
+                                        <div className="flex gap-2 flex-wrap">
+                                            {ticket.imageUrls.map((url, i) => (
+                                                <img key={i} src={url} alt="evidence"
+                                                    className="w-16 h-16 object-cover rounded-xl border border-blue-100 cursor-pointer hover:scale-105 transition"
+                                                    onClick={() => window.open(url, '_blank')}
+                                                    onError={e => { e.target.src = 'https://via.placeholder.com/64?text=Img'; }} />
+                                            ))}
                                         </div>
                                     )}
+                                </div>
 
-                                    {/* Actions */}
-                                    <div className="space-y-4 pt-8 border-t-2 border-slate-50 mt-auto">
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-widest">Update Status</label>
-                                            <select 
-                                                className="w-full bg-slate-100 border-none text-sm font-black text-slate-700 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-400 appearance-none cursor-pointer"
+                                {/* Actions */}
+                                <div className="border-t border-blue-50 p-4 space-y-3">
+                                    {canUpdateStatus && (
+                                        <div>
+                                            <label className="block text-xs text-slate-500 font-medium mb-1">Update Status</label>
+                                            <select
+                                                className="w-full rounded-xl border border-blue-100 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100"
                                                 value={ticket.status}
-                                                onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
+                                                onChange={e => handleStatusChange(ticket.id, e.target.value)}
                                             >
-                                                <option value="OPEN">⭕ OPEN</option>
-                                                <option value="IN_PROGRESS">⏳ IN PROGRESS</option>
-                                                <option value="RESOLVED">✅ RESOLVED</option>
-                                                <option value="REJECTED">❌ REJECTED</option>
+                                                <option value="OPEN">OPEN</option>
+                                                <option value="IN_PROGRESS">IN PROGRESS</option>
+                                                <option value="RESOLVED">RESOLVED</option>
+                                                <option value="CLOSED">CLOSED</option>
+                                                <option value="REJECTED">REJECTED</option>
                                             </select>
                                         </div>
-                                        
-                                        <div className="flex gap-3">
-                                            <button 
-                                                onClick={() => navigate(`/tickets/${ticket.id}`)}
-                                                className="flex-1 bg-slate-900 text-white px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-slate-200 active:scale-95"
-                                            >
-                                                Details
-                                            </button>
-                                            <button 
-                                                onClick={() => handleDelete(ticket.id)}
-                                                className="bg-rose-50 text-rose-500 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <button onClick={() => navigate(`/tickets/${ticket.id}`)}
+                                            className="flex-1 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition flex items-center justify-center gap-1.5">
+                                            <FiEye size={13} /> Details
+                                        </button>
+                                        <button onClick={() => handleDelete(ticket.id)}
+                                            className="p-2 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-100 transition">
+                                            <FiTrash2 size={14} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <div className="col-span-full py-32 text-center bg-white rounded-[60px] border-4 border-dashed border-slate-50">
-                            <p className="text-slate-300 font-black text-2xl uppercase tracking-tighter">No Maintenance Records Found</p>
-                        </div>
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
+            </div>
             </div>
         </div>
     );
 };
 
-export default TicketListPage 
+export default TicketListPage;

@@ -111,7 +111,7 @@ const TechnicianDashboard = () => {
           <nav className="mt-8 space-y-2">
             {[
               { id: 'OVERVIEW', label: 'Overview', icon: <FiHome /> },
-              { id: 'ASSIGNED_M3', label: 'Assigned Tickets (M3)', icon: <FiClipboard /> },
+              { id: 'ASSIGNED_M3', label: 'All Tickets (M3)', icon: <FiClipboard /> },
               { id: 'UPDATE_STATUS_M3', label: 'Update Status (M3)', icon: <FiCheckCircle /> },
               { id: 'RESOLUTION_NOTES_M3', label: 'Resolution Notes (M3)', icon: <FiClipboard /> },
               { id: 'RESOURCE_STATUS_M1', label: 'Resource Status (M1)', icon: <FiTool /> },
@@ -119,7 +119,7 @@ const TechnicianDashboard = () => {
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => ['ASSIGNED_M3','UPDATE_STATUS_M3','RESOLUTION_NOTES_M3'].includes(item.id) ? navigate('/tickets') : setActiveSection(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition ${
                   activeSection === item.id
                     ? 'bg-cyan-400 text-slate-950 border-cyan-300 font-semibold'

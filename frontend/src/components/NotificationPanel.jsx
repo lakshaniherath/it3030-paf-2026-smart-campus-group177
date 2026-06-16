@@ -20,6 +20,11 @@ const NotificationPanel = () => {
     };
 
     loadNotifications();
+    
+    // Auto-refresh notifications every 10 seconds
+    const interval = setInterval(loadNotifications, 10000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

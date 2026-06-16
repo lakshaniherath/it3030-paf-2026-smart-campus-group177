@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")  // Admin or Technician only
 public class AdminController {
     
     @Autowired

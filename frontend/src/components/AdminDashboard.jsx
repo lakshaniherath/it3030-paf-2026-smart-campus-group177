@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdminResourceManagementPage from '../features/resources/pages/AdminResourceManagementPage';
+import BookingManagement from './member2/BookingManagement';
+import AdminBookingPanel from './member2/AdminBookingPanel';
+import AdminTicketPanel from './member3/AdminTicketPanel';
 import {
   FiBell,
   FiCalendar,
@@ -62,6 +66,9 @@ const AdminDashboard = () => {
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
+  const [resourceStats, setResourceStats] = useState({ total: 0, active: 0 });
+  const [pendingBookings, setPendingBookings] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -89,6 +96,8 @@ const AdminDashboard = () => {
   });
 
   const [auditLogs, setAuditLogs] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [showNotificationForm, setShowNotificationForm] = useState(false);
 
   const pushAuditLog = useCallback((action, details) => {
     const actor = getStoredUser();
@@ -163,6 +172,45 @@ const AdminDashboard = () => {
 
       setStats(statsResponse?.stats || null);
       setUsers(hasBackendUsers ? backendUsers : DEMO_USERS);
+
+      // Fetch resource stats from member 1 backend
+      try {
+        const resData = await fetch('http://localhost:8080/api/resources?size=100');
+        const resJson = await resData.json();
+        const content = resJson.content || [];
+        setResourceStats({
+          total: resJson.totalElements || content.length,
+          active: content.filter(r => r.status === 'ACTIVE').length,
+        });
+      } catch (_) {
+        // resource backend may not be running
+      }
+
+      // Fetch pending bookings count from member 2 backend
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const bRes = await fetch('http://localhost:8080/api/member2/bookings?status=PENDING', {
+          headers: { 'X-User-Email': user.email || '' },
+        });
+        const bJson = await bRes.json();
+        setPendingBookings(Array.isArray(bJson) ? bJson.length : 0);
+      } catch (_) {}
+
+      // Fetch open tickets count from member 3 backend
+      try {
+        const tRes = await fetch('http://localhost:8080/api/tickets');
+        const tJson = await tRes.json();
+        const tList = Array.isArray(tJson) ? tJson : [];
+        setOpenTickets(tList.filter(t => t.status === 'OPEN').length);
+      } catch (_) {}
+
+      // Fetch all notifications
+      try {
+        const notifResponse = await apiFetch('/api/notifications');
+        setAllNotifications(Array.isArray(notifResponse.notifications) ? notifResponse.notifications : []);
+      } catch (_) {
+        setAllNotifications([]);
+      }
 
       if (hasBackendUsers) {
         setMessage('Dashboard data refreshed.');
@@ -410,30 +458,34 @@ const AdminDashboard = () => {
     () => [
       {
         title: 'Total Resources',
-        value: 'Integration Pending',
+        value: resourceStats.total > 0 ? resourceStats.total : 'No data',
         owner: 'Member 1',
-        tone: 'text-amber-300',
+        tone: resourceStats.total > 0 ? 'text-emerald-600' : 'text-amber-300',
+        onClick: () => setActiveSection('resources'),
       },
       {
         title: 'Pending Bookings',
-        value: 'Integration Pending',
+        value: pendingBookings > 0 ? pendingBookings : 'No pending',
         owner: 'Member 2',
-        tone: 'text-amber-300',
+        tone: pendingBookings > 0 ? 'text-rose-500' : 'text-amber-300',
+        onClick: () => setActiveSection('bookings'),
       },
       {
         title: 'Open Tickets',
-        value: 'Integration Pending',
+        value: openTickets > 0 ? openTickets : 'No open',
         owner: 'Member 3',
-        tone: 'text-amber-300',
+        tone: openTickets > 0 ? 'text-amber-500' : 'text-amber-300',
+        onClick: () => setActiveSection('tickets'),
       },
       {
         title: 'Total Users',
         value: stats?.totalUsers ?? users.length,
         owner: 'Member 4',
         tone: 'text-cyan-300',
+        onClick: () => setActiveSection('users'),
       },
     ],
-    [stats, users.length]
+    [stats, users.length, resourceStats, pendingBookings, openTickets]
   );
 
   const navItems = [
@@ -464,7 +516,6 @@ const AdminDashboard = () => {
       >
         <div className="p-5 border-b border-blue-300/40">
           <h2 className="text-xl font-bold text-white">Campus Admin Hub</h2>
-          <p className="text-xs text-blue-50/90 mt-1">Group 177 Integrated Console</p>
         </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
@@ -502,10 +553,6 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="relative p-3 rounded-xl bg-white border border-slate-200">
-              <FiBell />
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-blue-600"></span>
-            </button>
             <div className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm flex items-center gap-2 text-slate-700">
               <FiUser />
               {user?.email || 'admin@local'}
@@ -542,62 +589,26 @@ const AdminDashboard = () => {
           <section className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               {overviewCards.map((card) => (
-                <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div key={card.title} onClick={card.onClick} className="rounded-2xl border border-slate-200 bg-white p-4 cursor-pointer hover:shadow-md transition">
                   <p className="text-slate-500 text-sm">{card.title}</p>
                   <p className={`text-2xl font-bold mt-2 ${card.tone}`}>{card.value}</p>
                   <p className="text-xs text-slate-500 mt-2">Owner: {card.owner}</p>
                 </div>
               ))}
             </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h2 className="text-xl font-semibold">Team Integration Map</h2>
-              <p className="text-sm text-slate-600 mt-2">
-                Member 4 section is fully functional. Member 1, 2, and 3 sections are integration-ready panels.
-              </p>
-            </div>
           </section>
         )}
 
         {activeSection === 'resources' && (
-          <IntegrationPanel
-            title="Member 1 - Resource and Assets"
-            description="Asset Inventory, Add/Edit/Delete resources, and availability toggle will connect here."
-            endpointGuide={[
-              'GET /api/resources',
-              'POST /api/resources',
-              'PUT /api/resources/{id}',
-              'DELETE /api/resources/{id}',
-              'PATCH /api/resources/{id}/status',
-            ]}
-          />
+          <AdminResourceManagementPage />
         )}
 
         {activeSection === 'bookings' && (
-          <IntegrationPanel
-            title="Member 2 - Booking Management"
-            description="Pending booking requests, approve/reject actions, and master calendar panel integration point."
-            endpointGuide={[
-              'GET /api/bookings?status=PENDING',
-              'PUT /api/bookings/{id}/approve',
-              'PUT /api/bookings/{id}/reject',
-              'GET /api/bookings/calendar',
-            ]}
-          />
+          <AdminBookingPanel />
         )}
 
         {activeSection === 'tickets' && (
-          <IntegrationPanel
-            title="Member 3 - Maintenance and Tickets"
-            description="Ticket inbox, technician assignment, and evidence image viewer can be plugged into this panel."
-            endpointGuide={[
-              'GET /api/tickets?status=OPEN',
-              'PUT /api/tickets/{id}/assign',
-              'PUT /api/tickets/{id}/status',
-              'GET /api/tickets/{id}/attachments',
-            ]}
-            icon={<FiImage />}
-          />
+          <AdminTicketPanel />
         )}
 
         {activeSection === 'users' && (
@@ -799,69 +810,170 @@ const AdminDashboard = () => {
         )}
 
         {activeSection === 'notifications' && (
-          <section className="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 className="text-xl font-semibold mb-4">Member 4 - System Notifications</h2>
-            <form className="space-y-3" onSubmit={handleNotificationSubmit}>
-              <input
-                type="email"
-                placeholder="Recipient email"
-                value={notificationForm.userEmail}
-                onChange={(event) =>
-                  setNotificationForm((prev) => ({ ...prev, userEmail: event.target.value }))
-                }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              />
+          <section className="space-y-6">
+            {/* Notification List */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold">All System Notifications</h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {allNotifications.length} total notification{allNotifications.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowNotificationForm(!showNotificationForm)}
+                  className="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-semibold hover:bg-cyan-300 transition flex items-center gap-2"
+                >
+                  <FiPlusCircle size={16} />
+                  {showNotificationForm ? 'Hide Form' : 'Send New Notification'}
+                </button>
+              </div>
 
-              <select
-                value={notificationForm.type}
-                onChange={(event) =>
-                  setNotificationForm((prev) => ({ ...prev, type: event.target.value }))
-                }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="SYSTEM">SYSTEM</option>
-                <option value="BOOKING">BOOKING</option>
-                <option value="TICKET">TICKET</option>
-                <option value="COMMENT">COMMENT</option>
-              </select>
+              {/* Send Notification Form (Collapsible) */}
+              {showNotificationForm && (
+                <div className="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50/50">
+                  <h3 className="font-semibold mb-3 text-slate-800">Send New Notification</h3>
+                  <form className="space-y-3" onSubmit={handleNotificationSubmit}>
+                    <input
+                      type="email"
+                      placeholder="Recipient email"
+                      value={notificationForm.userEmail}
+                      onChange={(event) =>
+                        setNotificationForm((prev) => ({ ...prev, userEmail: event.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
 
-              <input
-                type="text"
-                placeholder="Title"
-                value={notificationForm.title}
-                onChange={(event) =>
-                  setNotificationForm((prev) => ({ ...prev, title: event.target.value }))
-                }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              />
+                    <select
+                      value={notificationForm.type}
+                      onChange={(event) =>
+                        setNotificationForm((prev) => ({ ...prev, type: event.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="SYSTEM">SYSTEM</option>
+                      <option value="BOOKING">BOOKING</option>
+                      <option value="TICKET">TICKET</option>
+                      <option value="COMMENT">COMMENT</option>
+                    </select>
 
-              <textarea
-                rows={4}
-                placeholder="Message"
-                value={notificationForm.message}
-                onChange={(event) =>
-                  setNotificationForm((prev) => ({ ...prev, message: event.target.value }))
-                }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              />
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={notificationForm.title}
+                      onChange={(event) =>
+                        setNotificationForm((prev) => ({ ...prev, title: event.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
 
-              <input
-                type="text"
-                placeholder="Related ID (optional)"
-                value={notificationForm.relatedId}
-                onChange={(event) =>
-                  setNotificationForm((prev) => ({ ...prev, relatedId: event.target.value }))
-                }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              />
+                    <textarea
+                      rows={4}
+                      placeholder="Message"
+                      value={notificationForm.message}
+                      onChange={(event) =>
+                        setNotificationForm((prev) => ({ ...prev, message: event.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
 
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold hover:bg-blue-800"
-              >
-                Send Notification
-              </button>
-            </form>
+                    <input
+                      type="text"
+                      placeholder="Related ID (optional)"
+                      value={notificationForm.relatedId}
+                      onChange={(event) =>
+                        setNotificationForm((prev) => ({ ...prev, relatedId: event.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    />
+
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl bg-blue-700 text-white px-4 py-2 font-semibold hover:bg-blue-800"
+                    >
+                      Send Notification
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Notifications List */}
+              <div className="space-y-3">
+                {allNotifications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FiBell className="mx-auto text-slate-300 mb-3" size={48} />
+                    <p className="text-slate-600 font-semibold">No notifications yet</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      Notifications will appear here when bookings are created/approved or tickets are updated.
+                    </p>
+                  </div>
+                ) : (
+                  allNotifications.map((notif) => {
+                    const getIcon = (type) => {
+                      switch (type) {
+                        case 'BOOKING': return '📅';
+                        case 'TICKET': return '🔧';
+                        case 'COMMENT': return '💬';
+                        default: return '📢';
+                      }
+                    };
+                    
+                    const formatTime = (date) => {
+                      if (!date) return 'Date unavailable';
+                      const now = new Date();
+                      const notifDate = new Date(date);
+                      const diffMs = now - notifDate;
+                      const diffMins = Math.floor(diffMs / 60000);
+                      const diffHours = Math.floor(diffMs / 3600000);
+                      const diffDays = Math.floor(diffMs / 86400000);
+
+                      if (diffMins < 1) return 'Just now';
+                      if (diffMins < 60) return `${diffMins}m ago`;
+                      if (diffHours < 24) return `${diffHours}h ago`;
+                      if (diffDays < 7) return `${diffDays}d ago`;
+                      return notifDate.toLocaleDateString();
+                    };
+                    
+                    return (
+                      <div 
+                        key={notif.id} 
+                        className={`rounded-xl p-4 border transition ${
+                          notif.read 
+                            ? 'border-slate-200 bg-white' 
+                            : 'border-cyan-200 bg-cyan-50/50 border-l-4 border-l-cyan-400'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl flex-shrink-0 mt-0.5">
+                            {getIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1">
+                                <p className="font-semibold text-slate-800">{notif.title}</p>
+                                <p className="text-sm text-slate-600 mt-1">{notif.message}</p>
+                              </div>
+                              {!notif.read && (
+                                <span className="px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 text-xs font-semibold flex-shrink-0">
+                                  Unread
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                {notif.type || 'SYSTEM'}
+                              </span>
+                              <span>To: {notif.userEmail}</span>
+                              <span>{formatTime(notif.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </section>
         )}
 
@@ -891,7 +1003,7 @@ const AdminDashboard = () => {
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <h2 className="text-xl font-semibold mb-3">Report Generation</h2>
               <p className="text-sm text-slate-600 mb-4">
-                Export admin evidence files for viva and final report.
+                Export system data and analytics reports.
               </p>
               <div className="space-y-3">
                 <button

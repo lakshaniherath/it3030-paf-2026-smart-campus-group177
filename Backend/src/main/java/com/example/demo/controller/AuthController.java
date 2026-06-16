@@ -261,7 +261,6 @@ public class AuthController {
     }
 
     @PutMapping("/api/auth/user/{email}/role")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
     public ResponseEntity<Map<String, Object>> updateUserRole(@PathVariable String email, @RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         try {

@@ -44,7 +44,11 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login/**", "/oauth2/**", "/api/auth/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
                 .requestMatchers("/api/chatbot/**").permitAll()
-                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/api/tickets/**").permitAll()
+                .requestMatchers("/api/member2/**").permitAll()
+                .requestMatchers("/api/admin/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").permitAll()
+                .requestMatchers("/api/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 // අනිත් හැම එකකටම ලොග් වෙලා ඉන්න ඕනේ
                 .anyRequest().authenticated()
@@ -68,7 +72,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization",
             "Content-Type",

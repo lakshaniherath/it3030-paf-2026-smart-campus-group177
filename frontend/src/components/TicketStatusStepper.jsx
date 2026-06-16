@@ -1,49 +1,46 @@
 import React from 'react';
+import { FiCheck } from 'react-icons/fi';
 
-const TicketStatusStepper = ({ currentStatus }) => {
-  // Status එක නැති වුණොත් default එකක් ගන්නවා
-  const status = currentStatus || 'OPEN';
-
-  const steps = [
+const steps = [
     { id: 'OPEN', label: 'Opened' },
     { id: 'IN_PROGRESS', label: 'In Progress' },
     { id: 'RESOLVED', label: 'Resolved' },
-    { id: 'CLOSED', label: 'Closed' }
-  ];
+    { id: 'CLOSED', label: 'Closed' },
+];
 
-  const currentStepIndex = steps.findIndex(step => step.id === status);
+const TicketStatusStepper = ({ currentStatus }) => {
+    const status = currentStatus || 'OPEN';
+    const currentIndex = steps.findIndex(s => s.id === status);
 
-  return (
-    <div className="w-full py-8 px-2" style={{ minHeight: '100px' }}>
-      <div className="flex items-center">
-        {steps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div className="relative flex flex-col items-center group">
-              <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 transition-all duration-500 z-10 ${
-                index <= currentStepIndex 
-                ? 'bg-blue-600 border-blue-600 text-white' 
-                : 'bg-white border-slate-200 text-slate-400'
-              }`}>
-                {index < currentStepIndex ? '✓' : index + 1}
-              </div>
-              <div className={`absolute -bottom-8 w-max text-[10px] font-bold uppercase ${
-                index <= currentStepIndex ? 'text-blue-600' : 'text-slate-500'
-              }`}>
-                {step.label}
-              </div>
-            </div>
-            {index !== steps.length - 1 && (
-              <div className="flex-auto -mx-1">
-                <div className={`h-1 transition-all duration-700 ${
-                  index < currentStepIndex ? 'bg-blue-600' : 'bg-slate-100'
-                }`}></div>
-              </div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
+    return (
+        <div className="flex items-center w-full">
+            {steps.map((step, index) => (
+                <React.Fragment key={step.id}>
+                    <div className="flex flex-col items-center">
+                        <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all z-10 ${
+                            index < currentIndex
+                                ? 'bg-blue-600 border-blue-600 text-white'
+                                : index === currentIndex
+                                ? 'bg-cyan-400 border-cyan-400 text-slate-950'
+                                : 'bg-white border-slate-200 text-slate-400'
+                        }`}>
+                            {index < currentIndex ? <FiCheck size={14} /> : index + 1}
+                        </div>
+                        <span className={`mt-2 text-xs font-semibold whitespace-nowrap ${
+                            index <= currentIndex ? 'text-blue-700' : 'text-slate-400'
+                        }`}>
+                            {step.label}
+                        </span>
+                    </div>
+                    {index !== steps.length - 1 && (
+                        <div className={`flex-1 h-1 mx-1 rounded-full transition-all ${
+                            index < currentIndex ? 'bg-blue-500' : 'bg-slate-100'
+                        }`} />
+                    )}
+                </React.Fragment>
+            ))}
+        </div>
+    );
 };
 
-export default TicketStatusStepper; 
+export default TicketStatusStepper;

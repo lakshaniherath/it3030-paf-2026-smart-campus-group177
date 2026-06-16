@@ -170,7 +170,6 @@ public class NotificationController {
      * POST /api/notifications
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
     public ResponseEntity<?> createNotification(@RequestBody Map<String, String> notificationData) {
         try {
             String userEmail = notificationData.get("userEmail");

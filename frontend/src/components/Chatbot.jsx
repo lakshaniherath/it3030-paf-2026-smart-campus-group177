@@ -212,7 +212,7 @@ const Chatbot = () => {
             />
             <button
               className="px-4 py-2 bg-cyan-400 text-slate-950 rounded-xl hover:opacity-90 transition disabled:opacity-50"
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={isLoading || inputValue.trim() === ''}
               title="Send message"
             >
