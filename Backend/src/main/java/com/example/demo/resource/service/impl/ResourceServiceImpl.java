@@ -68,44 +68,55 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
-    public Page<ResourceResponse> getAllResources(String keyword, ResourceType type,
-                                                   ResourceStatus status, int minCapacity,
-                                                   Pageable pageable) {
-        // Build dynamic criteria
-        Criteria criteria = new Criteria();
-
-        if (keyword != null && !keyword.isBlank()) {
-            Pattern regex = Pattern.compile(keyword.trim(), Pattern.CASE_INSENSITIVE);
-            criteria = criteria.orOperator(
-                    Criteria.where("name").regex(regex),
-                    Criteria.where("code").regex(regex),
-                    Criteria.where("location").regex(regex)
-            );
+    public Page<ResourceResponse> getAllResources(String keyword, ResourceType type, ResourceStatus status, int minCapacity, Pageable pageable) {
+        Page<Resource> resources;
+        
+        boolean hasKeyword = keyword != null && !keyword.isEmpty();
+        boolean hasType = type != null;
+        boolean hasStatus = status != null;
+        boolean hasCapacity = minCapacity > 0;
+        
+        if (hasKeyword) {
+            // Search with keyword combined with other filters
+            if (hasType && hasStatus && hasCapacity) {
+                resources = resourceRepository.searchByKeywordAndFilters(keyword, type, status, minCapacity, pageable);
+            } else if (hasType && hasStatus) {
+                resources = resourceRepository.searchByKeywordAndFilters(keyword, type, status, 0, pageable);
+            } else if (hasType && hasCapacity) {
+                resources = resourceRepository.searchByKeywordTypeCapacity(keyword, type, minCapacity, pageable);
+            } else if (hasStatus && hasCapacity) {
+                resources = resourceRepository.searchByKeywordStatusCapacity(keyword, status, minCapacity, pageable);
+            } else if (hasType) {
+                resources = resourceRepository.searchByKeywordAndType(keyword, type, pageable);
+            } else if (hasStatus) {
+                resources = resourceRepository.searchByKeywordAndStatus(keyword, status, pageable);
+            } else if (hasCapacity) {
+                resources = resourceRepository.searchByKeywordAndCapacity(keyword, minCapacity, pageable);
+            } else {
+                resources = resourceRepository.searchByKeyword(keyword, pageable);
+            }
+        } else {
+            // No keyword - filter by type, status, capacity
+            if (hasType && hasStatus && hasCapacity) {
+                resources = resourceRepository.findByTypeStatusCapacity(type, status, minCapacity, pageable);
+            } else if (hasType && hasStatus) {
+                resources = resourceRepository.findByTypeAndStatus(type, status, pageable);
+            } else if (hasType && hasCapacity) {
+                resources = resourceRepository.findByTypeAndCapacityGreaterThanEqual(type, minCapacity, pageable);
+            } else if (hasStatus && hasCapacity) {
+                resources = resourceRepository.findByStatusAndCapacityGreaterThanEqual(status, minCapacity, pageable);
+            } else if (hasType) {
+                resources = resourceRepository.findByType(type, pageable);
+            } else if (hasStatus) {
+                resources = resourceRepository.findByStatus(status, pageable);
+            } else if (hasCapacity) {
+                resources = resourceRepository.findByCapacityGreaterThanEqual(minCapacity, pageable);
+            } else {
+                resources = resourceRepository.findAll(pageable);
+            }
         }
 
-        if (type != null) {
-            criteria = criteria.and("type").is(type);
-        }
-
-        if (status != null) {
-            criteria = criteria.and("status").is(status);
-        }
-
-        if (minCapacity > 0) {
-            criteria = criteria.and("capacity").gte(minCapacity);
-        }
-
-        Query query = new Query(criteria).with(pageable);
-        Query countQuery = new Query(criteria);
-
-        List<Resource> resources = mongoTemplate.find(query, Resource.class);
-        long total = mongoTemplate.count(countQuery, Resource.class);
-
-        List<ResourceResponse> responses = resources.stream()
-                .map(resourceMapper::toResponse)
-                .toList();
-
-        return new PageImpl<>(responses, pageable, total);
+        return resources.map(resourceMapper::toResponse);
     }
 
     @Override

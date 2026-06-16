@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { resourceService } from '../api/resourceService';
 
 export const useResources = (initialFilters = {}) => {
@@ -7,12 +7,13 @@ export const useResources = (initialFilters = {}) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [filters, setFilters] = useState(initialFilters);
+    const debounceRef = useRef(null);
 
-    const fetchResources = useCallback(async () => {
+    const fetchResources = useCallback(async (currentFilters) => {
         setLoading(true);
         setError(null);
         try {
-            const data = await resourceService.getAllResources(filters);
+            const data = await resourceService.getAllResources(currentFilters);
             setResources(data.content || []);
             setPagination({
                 page: data.number,
@@ -22,21 +23,43 @@ export const useResources = (initialFilters = {}) => {
             });
         } catch (err) {
             setError(err.message);
+            setResources([]);
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
+    // Debounced filter effect
     useEffect(() => {
-        fetchResources();
-    }, [fetchResources]);
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+        
+        debounceRef.current = setTimeout(() => {
+            fetchResources(filters);
+        }, 300); // 300ms debounce
+
+        return () => {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, [filters, fetchResources]);
 
     const handleFilterChange = (newFilters) => {
-        setFilters(prev => ({ ...prev, ...newFilters, page: 0 })); // Reset to page 0 on new filter
+        setFilters(prev => {
+            // Only reset page if filters actually changed
+            const hasChanged = Object.keys(newFilters).some(key => prev[key] !== newFilters[key]);
+            return hasChanged ? { ...prev, ...newFilters, page: 0 } : prev;
+        });
     };
 
     const handlePageChange = (newPage) => {
         setFilters(prev => ({ ...prev, page: newPage }));
+    };
+
+    const clearFilters = () => {
+        setFilters({ page: 0, size: 10 });
     };
 
     return {
@@ -47,6 +70,7 @@ export const useResources = (initialFilters = {}) => {
         filters,
         handleFilterChange,
         handlePageChange,
-        refetch: fetchResources
+        clearFilters,
+        refetch: () => fetchResources(filters)
     };
 };
